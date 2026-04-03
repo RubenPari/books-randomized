@@ -43,12 +43,25 @@ public class BookService {
     @Transactional
     public Book randomBook(UUID userId, String sessionId, Map<String, String> filters, String targetLanguage) {
         Map<String, String> safeFilters = new HashMap<>(filters);
+        Set<String> excluded = new HashSet<>();
+        if (filters.containsKey("excludeIds")) {
+            for (String id : filters.get("excludeIds").split(",")) {
+                if (id != null && !id.isBlank()) {
+                    excluded.add(id.trim());
+                }
+            }
+        }
+
         int attempts = 0;
         while (attempts < 5) {
             attempts += 1;
             ExternalBook external = bookDatabaseClient.fetchRandom(safeFilters);
             if (external == null || external.getId() == null) {
                 throw new IllegalStateException("Book API did not return a book");
+            }
+
+            if (excluded.contains(external.getId())) {
+                continue;
             }
 
             Optional<Discovery> existingDiscovery = userId == null

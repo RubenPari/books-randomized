@@ -36,7 +36,8 @@ public class BookController {
             @RequestParam(required = false) Integer yearFrom,
             @RequestParam(required = false) Integer yearTo,
             @RequestParam(required = false) String sessionId,
-            @RequestParam(required = false) String targetLanguage
+            @RequestParam(required = false) String targetLanguage,
+            @RequestParam(required = false) String excludeIds
     ) {
         Map<String, String> filters = new HashMap<>();
         if (category != null) {
@@ -53,6 +54,9 @@ public class BookController {
         }
         if (yearTo != null) {
             filters.put("yearTo", yearTo.toString());
+        }
+        if (excludeIds != null) {
+            filters.put("excludeIds", excludeIds);
         }
 
         UUID userId = userDetails == null ? null : UUID.fromString(userDetails.getUsername());
