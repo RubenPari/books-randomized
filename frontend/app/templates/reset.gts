@@ -1,3 +1,5 @@
+import { on } from '@ember/modifier';
+
 <template>
   <section class="page narrow">
     <header class="page-header">
