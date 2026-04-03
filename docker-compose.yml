@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: books_randomized
+      POSTGRES_USER: books
+      POSTGRES_PASSWORD: books
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/books_randomized
+      DATABASE_USER: books
+      DATABASE_PASSWORD: books
+      JWT_SECRET: change-me-in-prod
+      BOOKDATABASE_BASE_URL: ${BOOKDATABASE_BASE_URL:-https://api.bookdatabase.io}
+      BOOKDATABASE_API_KEY: ${BOOKDATABASE_API_KEY:-}
+      MAILTRAP_API_TOKEN: ${MAILTRAP_API_TOKEN:-}
+      MAILTRAP_FROM_EMAIL: ${MAILTRAP_FROM_EMAIL:-no-reply@booksrandomized.local}
+      TRANSLATE_API_BASE_URL: ${TRANSLATE_API_BASE_URL:-}
+      TRANSLATE_API_KEY: ${TRANSLATE_API_KEY:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      API_BASE_URL: http://localhost:8080/api
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
