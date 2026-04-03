@@ -2,13 +2,12 @@ package dev.rubenpari.backend.security;
 
 import dev.rubenpari.backend.model.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -16,7 +15,7 @@ import java.util.UUID;
 
 @Service
 public class JwtService {
-    private final Key signingKey;
+    private final SecretKey signingKey;
     private final long accessTokenMinutes;
 
     public JwtService(
@@ -33,9 +32,9 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .issuedAt(java.util.Date.from(now))
+                .expiration(java.util.Date.from(expiresAt))
+                .signWith(signingKey)
                 .compact();
     }
 
