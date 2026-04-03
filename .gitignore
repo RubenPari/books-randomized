@@ -28,3 +28,4 @@ Thumbs.db
 # Frontend specific (see frontend/.gitignore)
 frontend/node_modules/
 frontend/dist/
+frontend/tsconfig.tsbuildinfo
