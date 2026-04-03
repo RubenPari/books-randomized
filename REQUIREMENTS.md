@@ -2,7 +2,7 @@
 
 ## 1. Panoramica del Progetto
 
-**Books Randomized** è un'applicazione web full-stack che permette agli utenti di scoprire libri casuali, salvare i preferiti in un vault personale e tracciare la cronologia delle scoperte. L'applicazione utilizza la **Google Books API** per ottenere dati sui libri e implementa un sistema di randomizzazione intelligente con filtri avanzati e prevenzione dei duplicati tra sessioni.
+**Books Randomized** è un'applicazione web full-stack che permette agli utenti di scoprire libri casuali, salvare i preferiti in un vault personale e tracciare la cronologia delle scoperte. L'applicazione utilizza la **bookdatabase.io** per ottenere dati sui libri e implementa un sistema di randomizzazione intelligente con filtri avanzati e prevenzione dei duplicati tra sessioni.
 
 ### Funzionalità Principali
 
@@ -10,7 +10,7 @@
 - **Cronologia delle scoperte** (sessione corrente + storico persistente) per evitare duplicati
 - **Vault personale** per salvare libri con note e valutazioni personali
 - **Supporto multilingua** (Italiano, Inglese)
-- **Anteprima libri** tramite cover image e Google Books preview embed
+- **Anteprima libri** tramite cover image e sommario
 - **Statistiche** (totale libri, rating medio, distribuzione per categoria/autore/lingua)
 - **Autenticazione completa** con registrazione, conferma email, reset password e JWT
 - **PWA** (Progressive Web App) con supporto offline
@@ -41,6 +41,6 @@ PostgreSQL
 
 | Servizio | Scopo |
 |----------|-------|
-| Google Books API | Dati libri (titolo, autori, categorie, cover, rating, descrizione) |
+| bookdatabase.io API | Dati libri (titolo, autori, categorie, cover, rating, descrizione) |
 | Google Translate API | Traduzione descrizioni libri |
 | Mailtrap | Email di conferma account e reset password |
