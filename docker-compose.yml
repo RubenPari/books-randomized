@@ -19,7 +19,7 @@ services:
       DATABASE_URL: jdbc:postgresql://db:5432/books_randomized
       DATABASE_USER: books
       DATABASE_PASSWORD: books
-      JWT_SECRET: change-me-in-prod
+      JWT_SECRET: change-me-in-prod-at-least-32-characters-long
       BOOKDATABASE_BASE_URL: ${BOOKDATABASE_BASE_URL:-https://api.bookdatabase.io}
       BOOKDATABASE_API_KEY: ${BOOKDATABASE_API_KEY:-}
       MAILTRAP_API_TOKEN: ${MAILTRAP_API_TOKEN:-}
