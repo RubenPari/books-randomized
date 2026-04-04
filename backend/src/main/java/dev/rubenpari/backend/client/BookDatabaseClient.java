@@ -8,6 +8,10 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
+/**
+ * REST client for the external book database API.
+ * Fetches random books with optional query-parameter filters and Bearer token authentication.
+ */
 @Component
 public class BookDatabaseClient {
     private final RestClient restClient;
@@ -21,6 +25,7 @@ public class BookDatabaseClient {
         this.apiKey = apiKey;
     }
 
+    /** Calls {@code GET /books/random} on the external API, forwarding all filter params. */
     public ExternalBook fetchRandom(Map<String, String> filters) {
         RestClient.RequestHeadersSpec<?> request = restClient.get()
                 .uri(uriBuilder -> {

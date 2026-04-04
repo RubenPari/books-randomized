@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
+/**
+ * POJO mapping the JSON response from the external book database API.
+ * Unknown JSON properties are silently ignored to allow forward compatibility.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExternalBook {
     private String id;

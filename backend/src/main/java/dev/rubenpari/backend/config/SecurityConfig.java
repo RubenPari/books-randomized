@@ -22,6 +22,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Spring Security configuration.
+ * <ul>
+ *   <li>Stateless sessions (no server-side session storage)</li>
+ *   <li>CSRF disabled (JWT-based auth)</li>
+ *   <li>CORS allowed from localhost:4200 (Ember dev server)</li>
+ *   <li>Public endpoints: /api/auth/**, GET /api/books/**, /actuator/health</li>
+ *   <li>All other endpoints require a valid JWT</li>
+ * </ul>
+ */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {

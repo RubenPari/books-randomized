@@ -17,6 +17,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * Spring Security filter that extracts and validates JWT tokens from the
+ * {@code Authorization: Bearer} header on every request.
+ * On success, populates the {@link SecurityContextHolder} with the authenticated user.
+ * On failure, silently clears the context and lets the request proceed unauthenticated.
+ */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;

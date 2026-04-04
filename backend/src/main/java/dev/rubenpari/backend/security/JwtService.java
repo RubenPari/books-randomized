@@ -13,6 +13,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Service for creating and validating JWT access tokens.
+ * Uses HMAC-SHA signing with a configurable secret and expiry.
+ */
 @Service
 public class JwtService {
     private final SecretKey signingKey;
@@ -26,6 +30,7 @@ public class JwtService {
         this.accessTokenMinutes = accessTokenMinutes;
     }
 
+    /** Creates a signed JWT containing the user's ID as subject and email as a custom claim. */
     public String generateAccessToken(User user) {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(accessTokenMinutes, ChronoUnit.MINUTES);
@@ -38,6 +43,7 @@ public class JwtService {
                 .compact();
     }
 
+    /** Verifies the token signature and extracts the user ID from the subject claim. */
     public UUID parseUserId(String token) {
         String subject = Jwts.parser()
                 .verifyWith(signingKey)
