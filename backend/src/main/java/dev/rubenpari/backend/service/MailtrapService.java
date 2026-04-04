@@ -15,15 +15,18 @@ public class MailtrapService {
     private final RestClient restClient;
     private final String apiToken;
     private final String fromEmail;
+    private final String fromName;
 
     public MailtrapService(
             @Value("${app.mailtrap.api-base-url}") String apiBaseUrl,
             @Value("${app.mailtrap.api-token}") String apiToken,
-            @Value("${app.mailtrap.from-email}") String fromEmail
+            @Value("${app.mailtrap.from-email}") String fromEmail,
+            @Value("${app.mailtrap.from-name}") String fromName
     ) {
         this.restClient = RestClient.builder().baseUrl(apiBaseUrl).build();
         this.apiToken = apiToken;
         this.fromEmail = fromEmail;
+        this.fromName = fromName;
     }
 
     public void sendEmail(String toEmail, String subject, String html) {
@@ -32,7 +35,7 @@ public class MailtrapService {
         }
 
         Map<String, Object> payload = Map.of(
-                "from", Map.of("email", fromEmail),
+                "from", Map.of("email", fromEmail, "name", fromName),
                 "to", List.of(Map.of("email", toEmail)),
                 "subject", subject,
                 "html", html
