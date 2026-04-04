@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import { inject as service } from '@ember/service';
+import { service } from '@ember/service';
 import type ApiService from '../services/api';
 import type DiscoveryHistoryService from '../services/discovery-history';
 import type AuthService from '../services/auth';
