@@ -1,3 +1,4 @@
+/** Random book discovery page: filter inputs, generate button, and book preview card with save-to-vault action. */
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 

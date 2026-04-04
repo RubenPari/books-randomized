@@ -1,3 +1,4 @@
+/** Statistics page: displays totals, average rating, and distribution charts by category/author/language. */
 import t from '../helpers/t';
 
 <template>

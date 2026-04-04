@@ -1,3 +1,4 @@
+/** Discovery history page: lists previously discovered books with title, authors, and date. */
 import t from '../helpers/t';
 
 <template>

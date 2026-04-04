@@ -1,3 +1,4 @@
+/** Registration page: collects display name, email, password, and language preference. */
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 

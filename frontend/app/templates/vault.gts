@@ -1,3 +1,4 @@
+/** Personal vault page: displays saved books with export/import functionality. */
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 

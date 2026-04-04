@@ -1,3 +1,4 @@
+/** Application shell template: renders the header with navigation, auth links, and the main content outlet. */
 import { pageTitle } from 'ember-page-title';
 import { LinkTo } from '@ember/routing';
 import t from '../helpers/t';

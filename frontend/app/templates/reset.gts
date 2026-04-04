@@ -1,3 +1,4 @@
+/** Password reset page: email input to request a reset token, with success/error feedback. */
 import { on } from '@ember/modifier';
 
 <template>

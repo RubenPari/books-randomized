@@ -1,3 +1,4 @@
+/** Settings page: language selector and preferred category input. */
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 

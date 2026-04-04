@@ -1,3 +1,4 @@
+/** Login page: email and password form with error display. */
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 
