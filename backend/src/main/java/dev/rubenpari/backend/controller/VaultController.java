@@ -20,6 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST controller for the user's book vault under {@code /api/vault}.
+ * Supports listing, adding, removing, exporting, and bulk-importing entries.
+ * All endpoints require authentication.
+ */
 @RestController
 @RequestMapping("/api/vault")
 public class VaultController {

@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller exposing authentication endpoints under {@code /api/auth}.
+ * All endpoints are publicly accessible (no JWT required).
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

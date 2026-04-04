@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+/**
+ * REST controller returning aggregated reading statistics for the authenticated user
+ * under {@code /api/stats}.
+ */
 @RestController
 @RequestMapping("/api/stats")
 public class StatsController {

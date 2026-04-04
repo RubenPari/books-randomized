@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * REST controller for book-related endpoints under {@code /api/books}.
+ * Provides random book discovery (with optional filters) and lookup by external ID.
+ */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
@@ -27,6 +31,7 @@ public class BookController {
         this.bookRepository = bookRepository;
     }
 
+    /** Returns a random book matching the given filters, avoiding previously discovered books. */
     @GetMapping("/random")
     public BookResponse randomBook(
             @AuthenticationPrincipal UserDetails userDetails,

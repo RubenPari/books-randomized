@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * REST controller exposing the authenticated user's book discovery history
+ * under {@code /api/history}.
+ */
 @RestController
 @RequestMapping("/api/history")
 public class HistoryController {
