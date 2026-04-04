@@ -2,6 +2,11 @@ import Service from '@ember/service';
 import { inject as service } from '@ember/service';
 import type I18nService from './i18n';
 
+/**
+ * Translation service providing a {@link t} method for UI string lookup.
+ * Contains a hardcoded dictionary of Italian and English translations
+ * covering navigation, pages, and authentication labels.
+ */
 export default class TranslationsService extends Service {
   @service declare i18n: I18nService;
 
@@ -96,6 +101,7 @@ export default class TranslationsService extends Service {
     },
   };
 
+  /** Returns the translated string for the given key in the current locale, or the key itself as fallback. */
   t(key: string): string {
     const locale = this.i18n.locale;
     return this.translations[locale]?.[key] || key;

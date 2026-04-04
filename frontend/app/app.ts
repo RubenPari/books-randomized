@@ -1,3 +1,8 @@
+/**
+ * Ember Application entry point.
+ * Configures the module resolver, WarpDrive integration, legacy inspector support,
+ * and conditionally loads the deprecation workflow in development mode.
+ */
 import '@warp-drive/ember/install';
 import Application from '@ember/application';
 import compatModules from '@embroider/virtual/compat-modules';

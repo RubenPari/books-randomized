@@ -10,6 +10,11 @@ interface Book {
   authors?: string[];
 }
 
+/**
+ * Session-scoped discovery history stored in sessionStorage.
+ * Tracks books discovered during the current browser session to help
+ * the backend avoid suggesting duplicates, even for anonymous users.
+ */
 export default class DiscoveryHistoryService extends Service {
   @tracked sessionHistory: Book[] = [];
 
@@ -25,6 +30,7 @@ export default class DiscoveryHistoryService extends Service {
     }
   }
 
+  /** Prepends a book to the session history if not already present (deduplicated by externalId). */
   add(book: Book) {
     if (!this.sessionHistory.find((b) => b.externalId === book.externalId)) {
       this.sessionHistory = [book, ...this.sessionHistory];

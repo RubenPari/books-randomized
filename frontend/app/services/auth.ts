@@ -1,6 +1,11 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
+/**
+ * Authentication state service.
+ * Stores JWT access and refresh tokens using tracked properties
+ * backed by localStorage for persistence across page reloads.
+ */
 export default class AuthService extends Service {
   @tracked accessToken: string | null = null;
   @tracked refreshToken: string | null = null;

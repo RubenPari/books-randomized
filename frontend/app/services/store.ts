@@ -1,3 +1,7 @@
+/**
+ * WarpDrive / EmberData store configuration using the legacy adapter pattern.
+ * Configured with a JSON:API cache. Handlers and schemas can be added as needed.
+ */
 import { useLegacyStore } from '@warp-drive/legacy';
 import { JSONAPICache } from '@warp-drive/json-api';
 

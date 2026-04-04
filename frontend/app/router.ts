@@ -1,3 +1,7 @@
+/**
+ * Application router definition.
+ * Maps URL paths to Ember routes. The "random" route is mounted at the root path ("/").
+ */
 import EmberRouter from '@embroider/router';
 import config from 'frontend/config/environment';
 

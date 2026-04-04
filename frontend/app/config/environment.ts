@@ -1,3 +1,7 @@
+/**
+ * Loads and validates the Ember environment configuration from a meta tag
+ * injected at build time. Exports a typed config object used throughout the app.
+ */
 import loadConfigFromMeta from '@embroider/config-meta-loader';
 import { assert } from '@ember/debug';
 

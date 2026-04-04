@@ -1,6 +1,10 @@
 import Service from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
+/**
+ * Internationalization service managing the active locale.
+ * Persists the user's choice in localStorage; defaults to Italian ('it').
+ */
 export default class I18nService extends Service {
   @tracked locale = 'it';
 

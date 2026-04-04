@@ -3,6 +3,11 @@ import { inject as service } from '@ember/service';
 import config from 'frontend/config/environment';
 import type AuthService from './auth';
 
+/**
+ * Central HTTP service wrapping all backend API calls.
+ * Automatically attaches the JWT Bearer token from the auth service
+ * and provides typed methods for every backend endpoint.
+ */
 export default class ApiService extends Service {
   @service declare auth: AuthService;
 
@@ -71,6 +76,7 @@ export default class ApiService extends Service {
     });
   }
 
+  /** Low-level fetch wrapper: injects auth header, handles errors and 204 responses. */
   async request(path: string, options: RequestInit = {}) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
