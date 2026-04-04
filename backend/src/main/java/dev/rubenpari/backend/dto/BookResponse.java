@@ -2,6 +2,7 @@ package dev.rubenpari.backend.dto;
 
 import java.util.Set;
 
+/** API response DTO representing a book with its metadata. */
 public record BookResponse(
         String id,
         String externalId,

@@ -2,6 +2,7 @@ package dev.rubenpari.backend.dto;
 
 import java.util.Map;
 
+/** API response DTO containing aggregated user statistics (totals, averages, and breakdowns). */
 public record StatsResponse(
         long totalDiscovered,
         long totalVaulted,
