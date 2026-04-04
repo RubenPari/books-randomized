@@ -12,6 +12,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity representing a registered user account.
+ * Stores credentials, profile info, and email confirmation status.
+ * Timestamps are managed automatically via lifecycle hooks.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -40,6 +45,7 @@ public class User {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    /** Sets both timestamps when the entity is first persisted. */
     @PrePersist
     public void prePersist() {
         Instant now = Instant.now();
@@ -47,6 +53,7 @@ public class User {
         updatedAt = now;
     }
 
+    /** Refreshes the updatedAt timestamp on every update. */
     @PreUpdate
     public void preUpdate() {
         updatedAt = Instant.now();

@@ -13,6 +13,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity recording that a user discovered a specific book.
+ * Each discovery is tied to a browser session via {@code sessionId},
+ * allowing the backend to avoid suggesting duplicates within the same session.
+ */
 @Entity
 @Table(name = "discoveries")
 public class Discovery {

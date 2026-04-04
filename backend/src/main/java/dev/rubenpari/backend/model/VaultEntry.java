@@ -14,6 +14,10 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity representing a book saved in a user's personal vault.
+ * Users can attach an optional note and personal rating to each entry.
+ */
 @Entity
 @Table(name = "vault_entries")
 public class VaultEntry {

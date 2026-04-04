@@ -13,6 +13,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity tracking email confirmation tokens sent to newly registered users.
+ * A token expires after a configurable period and is marked with a
+ * {@code confirmedAt} timestamp once the user confirms their address.
+ */
 @Entity
 @Table(name = "email_confirmations")
 public class EmailConfirmation {

@@ -17,6 +17,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * JPA entity representing a book fetched from the external book database.
+ * Contains metadata such as title, authors, categories, language, and rating.
+ * Authors and categories are stored as element collections in separate join tables.
+ */
 @Entity
 @Table(name = "books")
 public class Book {
@@ -24,6 +29,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /** Unique identifier from the external book database API. */
     @Column(nullable = false, unique = true)
     private String externalId;
 

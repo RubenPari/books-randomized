@@ -13,6 +13,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity tracking password reset tokens.
+ * Each token is single-use: once consumed, {@code usedAt} is set.
+ * Tokens expire after a configurable time window.
+ */
 @Entity
 @Table(name = "password_resets")
 public class PasswordReset {

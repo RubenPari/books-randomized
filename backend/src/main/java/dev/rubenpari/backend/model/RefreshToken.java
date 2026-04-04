@@ -13,6 +13,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity storing hashed refresh tokens for JWT-based authentication.
+ * Tokens can be revoked and have an expiration date.
+ * Only the SHA-256 hash of the token is persisted for security.
+ */
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshToken {
