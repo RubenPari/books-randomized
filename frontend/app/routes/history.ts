@@ -4,6 +4,11 @@ import type ApiService from '../services/api';
 import type DiscoveryHistoryService from '../services/discovery-history';
 import type AuthService from '../services/auth';
 
+/**
+ * Route for the discovery history page.
+ * Merges remote history (for authenticated users) with local session history,
+ * deduplicates by externalId, and sorts most-recent-first.
+ */
 export default class HistoryRoute extends Route {
   @service declare api: ApiService;
   @service declare discoveryHistory: DiscoveryHistoryService;

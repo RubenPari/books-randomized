@@ -4,6 +4,7 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import type ApiService from '../services/api';
 
+/** Controller for the registration page. Collects user details and delegates account creation to the API service. */
 export default class RegisterController extends Controller {
   @service declare api: ApiService;
 

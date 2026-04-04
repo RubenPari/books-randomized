@@ -16,6 +16,11 @@ interface Book {
   authors?: string[];
 }
 
+/**
+ * Controller for the random book discovery page.
+ * Manages filter state and actions for fetching a random book and saving it to the vault.
+ * Passes the session-scoped exclude list to prevent duplicate suggestions.
+ */
 export default class RandomController extends Controller {
   @service declare api: ApiService;
   @service declare i18n: I18nService;

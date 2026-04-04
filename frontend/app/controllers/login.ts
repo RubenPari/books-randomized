@@ -4,6 +4,7 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import type ApiService from '../services/api';
 
+/** Controller for the login page. Manages form state and delegates authentication to the API service. */
 export default class LoginController extends Controller {
   @service declare api: ApiService;
 

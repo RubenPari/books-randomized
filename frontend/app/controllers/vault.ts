@@ -4,6 +4,11 @@ import { inject as service } from '@ember/service';
 import type ApiService from '../services/api';
 import type I18nService from '../services/i18n';
 
+/**
+ * Controller for the personal vault page.
+ * Provides actions to export the vault as a downloadable JSON file
+ * and to import a previously exported JSON file back into the vault.
+ */
 export default class VaultController extends Controller {
   @service declare api: ApiService;
   @service declare i18n: I18nService;

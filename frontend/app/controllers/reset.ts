@@ -4,6 +4,7 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import type ApiService from '../services/api';
 
+/** Controller for the password reset page. Sends a reset token request to the backend via the API service. */
 export default class ResetController extends Controller {
   @service declare api: ApiService;
 
