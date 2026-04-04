@@ -1,3 +1,4 @@
+/** Browserslist targets used by Babel and Autoprefixer during the build. */
 'use strict';
 
 const browsers = [

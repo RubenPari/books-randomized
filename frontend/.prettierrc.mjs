@@ -1,3 +1,4 @@
+/** Prettier configuration: single quotes for JS/TS, double quotes for HTML/JSON/HBS, template tag support for GTS/GJS. */
 export default {
   plugins: ['prettier-plugin-ember-template-tag'],
   singleQuote: true,

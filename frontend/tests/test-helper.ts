@@ -1,3 +1,8 @@
+/**
+ * QUnit test bootstrap module.
+ * Creates the Ember application instance, registers qunit-dom assertions,
+ * configures Ember.onerror validation, and starts the QUnit test runner.
+ */
 import '@warp-drive/ember/install';
 import Application from 'frontend/app';
 import config from 'frontend/config/environment';
