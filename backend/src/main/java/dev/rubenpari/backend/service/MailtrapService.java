@@ -10,6 +10,11 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Email sending service using the Mailtrap REST API.
+ * Silently skips sending if the API token is not configured,
+ * allowing the app to run without an email provider in development.
+ */
 @Service
 public class MailtrapService {
     private final RestClient restClient;
@@ -29,6 +34,7 @@ public class MailtrapService {
         this.fromName = fromName;
     }
 
+    /** Sends an HTML email via the Mailtrap API. Does nothing if the API token is blank. */
     public void sendEmail(String toEmail, String subject, String html) {
         if (!StringUtils.hasText(apiToken)) {
             return;

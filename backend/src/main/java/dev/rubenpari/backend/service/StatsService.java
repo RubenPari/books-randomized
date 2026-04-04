@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Computes aggregated statistics for a user based on their discoveries and vault.
+ * Provides breakdowns by category, author, and language, plus average book rating.
+ */
 @Service
 public class StatsService {
     private final DiscoveryRepository discoveryRepository;
@@ -23,6 +27,7 @@ public class StatsService {
         this.vaultEntryRepository = vaultEntryRepository;
     }
 
+    /** Aggregates discovery data into totals, averages, and frequency maps for the given user. */
     public StatsResponse computeStats(UUID userId) {
         List<Discovery> discoveries = discoveryRepository.findByUserId(userId);
         List<VaultEntry> vaultEntries = vaultEntryRepository.findByUserId(userId);

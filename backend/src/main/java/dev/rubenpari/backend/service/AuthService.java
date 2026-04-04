@@ -27,6 +27,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.UUID;
 
+/**
+ * Core authentication service handling the full user lifecycle:
+ * registration, email confirmation, login, JWT refresh-token rotation,
+ * and password reset flows. Refresh tokens are stored as SHA-256 hashes.
+ */
 @Service
 public class AuthService {
     private final UserRepository userRepository;
@@ -61,6 +66,10 @@ public class AuthService {
         this.refreshTokenDays = refreshTokenDays;
     }
 
+    /**
+     * Registers a new user, sends an email confirmation token via Mailtrap,
+     * and returns an initial JWT token pair.
+     */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
@@ -90,6 +99,7 @@ public class AuthService {
         return issueTokens(user);
     }
 
+    /** Validates the confirmation token and marks the user's email as confirmed. */
     @Transactional
     public void confirmEmail(String token) {
         EmailConfirmation confirmation = emailConfirmationRepository.findByToken(token)
@@ -102,6 +112,7 @@ public class AuthService {
         confirmation.getUser().setEmailConfirmed(true);
     }
 
+    /** Authenticates the user via Spring Security and returns a new JWT token pair. */
     @Transactional
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
@@ -112,6 +123,7 @@ public class AuthService {
         return issueTokens(user);
     }
 
+    /** Rotates a refresh token: revokes the old one and issues a fresh token pair. */
     @Transactional
     public AuthResponse refresh(String refreshToken) {
         String tokenHash = hashToken(refreshToken);
@@ -125,6 +137,7 @@ public class AuthService {
         return issueTokens(stored.getUser());
     }
 
+    /** Creates a password-reset token and emails it to the user (silently ignores unknown emails). */
     @Transactional
     public void requestPasswordReset(String email) {
         userRepository.findByEmail(email.toLowerCase()).ifPresent(user -> {
@@ -142,6 +155,7 @@ public class AuthService {
         });
     }
 
+    /** Validates a password-reset token and updates the user's password. Single-use: marks the token as used. */
     @Transactional
     public void confirmPasswordReset(String token, String newPassword) {
         PasswordReset reset = passwordResetRepository.findByToken(token)
@@ -155,6 +169,7 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
     }
 
+    /** Generates a JWT access token and a new refresh token, persisting its hash. */
     private AuthResponse issueTokens(User user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = UUID.randomUUID().toString();
@@ -167,6 +182,7 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken);
     }
 
+    /** Hashes a token with SHA-256 and encodes the result as a URL-safe Base64 string. */
     private String hashToken(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

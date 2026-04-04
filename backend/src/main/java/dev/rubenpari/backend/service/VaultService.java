@@ -13,6 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Manages the user's personal book vault.
+ * Supports adding, listing, removing, and bulk-importing vault entries.
+ */
 @Service
 public class VaultService {
     private final VaultEntryRepository vaultEntryRepository;
@@ -25,6 +29,7 @@ public class VaultService {
         this.userRepository = userRepository;
     }
 
+    /** Saves a book to the user's vault. Throws if the book is already saved or does not exist. */
     @Transactional
     public VaultEntry addToVault(UUID userId, VaultEntryRequest request) {
         Book book = bookRepository.findByExternalId(request.externalBookId())
@@ -48,6 +53,7 @@ public class VaultService {
         return vaultEntryRepository.findByUserId(userId);
     }
 
+    /** Bulk-imports multiple vault entries, silently skipping duplicates and missing books. */
     @Transactional
     public void importEntries(UUID userId, List<VaultEntryRequest> entries) {
         for (VaultEntryRequest entry : entries) {
@@ -59,6 +65,7 @@ public class VaultService {
         }
     }
 
+    /** Removes a vault entry after verifying that the authenticated user owns it. */
     public void removeFromVault(UUID userId, UUID entryId) {
         VaultEntry entry = vaultEntryRepository.findById(entryId)
                 .orElseThrow(() -> new IllegalStateException("Vault entry not found"));

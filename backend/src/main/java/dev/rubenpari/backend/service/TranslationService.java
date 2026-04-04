@@ -9,6 +9,11 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
+/**
+ * Translates text via an external translation API.
+ * Returns the original text unchanged if the API key is not configured
+ * or if the translation API returns no result.
+ */
 @Service
 public class TranslationService {
     private final RestClient restClient;
@@ -22,6 +27,7 @@ public class TranslationService {
         this.apiKey = apiKey;
     }
 
+    /** Translates the given text to the target language. Falls back to the original on failure. */
     public String translateDescription(String text, String targetLanguage) {
         if (!StringUtils.hasText(apiKey) || !StringUtils.hasText(targetLanguage)) {
             return text;
@@ -47,6 +53,7 @@ public class TranslationService {
         return response.translatedText();
     }
 
+    /** DTO mapping the JSON response from the translation API. */
     public record TranslationResponse(String translatedText) {
     }
 }

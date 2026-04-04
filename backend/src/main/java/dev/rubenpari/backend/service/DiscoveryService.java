@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+/** Service providing read-only access to a user's book discovery history. */
 @Service
 public class DiscoveryService {
     private final DiscoveryRepository discoveryRepository;

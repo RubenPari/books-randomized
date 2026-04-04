@@ -18,6 +18,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Core service for book discovery. Fetches random books from the external API,
+ * avoids duplicates by checking user history and client-supplied exclude IDs,
+ * optionally translates descriptions, and records each discovery.
+ */
 @Service
 public class BookService {
     private final BookDatabaseClient bookDatabaseClient;
@@ -40,6 +45,11 @@ public class BookService {
         this.translationService = translationService;
     }
 
+    /**
+     * Fetches a random book that the user has not yet discovered.
+     * Retries up to 5 times to find a non-duplicate result.
+     * Persists the book locally (if new) and records a discovery event for authenticated users.
+     */
     @Transactional
     public Book randomBook(UUID userId, String sessionId, Map<String, String> filters, String targetLanguage) {
         Map<String, String> safeFilters = new HashMap<>(filters);
@@ -94,6 +104,7 @@ public class BookService {
         throw new IllegalStateException("Unable to find a new book without duplicates");
     }
 
+    /** Maps an external API response to a local {@link Book} entity. */
     private Book mapBook(ExternalBook external) {
         Book book = new Book();
         book.setExternalId(external.getId());
