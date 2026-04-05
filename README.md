@@ -19,7 +19,7 @@ Discover random books, save favorites to your personal vault, and track your dis
 - **Frontend**: Ember.js with TypeScript
 - **Backend**: Spring Boot (Java)
 - **Database**: PostgreSQL
-- **External APIs**: bookdatabase.io, Google Translate
+- **External APIs**: ISBNdb (api2.isbndb.com), Google Translate
 
 ## Quick Start
 

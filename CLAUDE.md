@@ -4,16 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Full-stack app for discovering random books, saving favorites to a personal vault, and tracking discovery history. Uses bookdatabase.io API for book data, Google Translate for translations, and Mailtrap for emails.
+Full-stack app for discovering random books, saving favorites to a personal vault, and tracking discovery history. Uses [ISBNdb API v2](https://api2.isbndb.com) for book data, Google Translate for translations, and Mailtrap for emails.
 
 ## Architecture
 
 - **Frontend** (`frontend/`): Ember.js with TypeScript, Embroider + Vite build, Octane patterns with GTS/GJS authoring
 - **Backend** (`backend/`): Spring Boot 4 (Java 25, Gradle), REST API on port 8080
 - **Database**: PostgreSQL 16 (docker-compose service `db`, database `books_randomized`, user/pass: `books/books`)
-- **API spec**: `docs-book-api.yaml` — OpenAPI spec for the external bookdatabase.io API
+- **API spec**: `docs-isbndb-openapi.json` — OpenAPI spec for ISBNdb (source: https://api2.isbndb.com/doc.json)
 
-Backend layers: `controller` → `service` → `repository` (Spring Data JPA) + `client` (external API calls via `BookDatabaseClient`). Auth uses JWT (jjwt library) with `JwtAuthFilter`/`JwtService`. DTOs in `dto/`, entities in `model/`, security config in `config/SecurityConfig`.
+Backend layers: `controller` → `service` → `repository` (Spring Data JPA) + `client` (external API calls via `IsbnDbClient`). Auth uses JWT (jjwt library) with `JwtAuthFilter`/`JwtService`. DTOs in `dto/`, entities in `model/`, security config in `config/SecurityConfig`.
 
 ## Common Commands
 
@@ -60,9 +60,9 @@ For rapid test iteration: build once with `vite build --mode development`, then 
 - Package: `dev.rubenpari.backend`
 - Config via environment variables with defaults in `application.properties`
 - JPA with `ddl-auto=update` (schema auto-managed)
-- External API client POJOs in `client/` package (`ExternalBook`, `ExternalEdition`, `ExternalLanguage`)
+- External API client in `client/` (`IsbnDbClient`, `ExternalBook`) and `client/isbndb/` (ISBNdb JSON DTOs)
 
 ## Environment Variables
 
 Required for full functionality (all have defaults for local dev):
-`DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, `JWT_SECRET`, `BOOKDATABASE_BASE_URL`, `BOOKDATABASE_API_KEY`, `MAILTRAP_API_TOKEN`, `TRANSLATE_API_BASE_URL`, `TRANSLATE_API_KEY`
+`DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`, `JWT_SECRET`, `ISBNDB_BASE_URL`, `ISBNDB_API_KEY`, `MAILTRAP_API_TOKEN`, `TRANSLATE_API_BASE_URL`, `TRANSLATE_API_KEY`
