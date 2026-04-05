@@ -3,7 +3,6 @@ import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { concat } from '@ember/helper';
 import t from '../helpers/t';
 import type ApiService from '../services/api';
 import type I18nService from '../services/i18n';
@@ -136,7 +135,11 @@ export default class RandomPage extends Component {
 
       <div class="card book-preview">
         {{#if this.currentBook}}
-          <div class="cover" style={{if this.currentBook.coverUrl (concat "background-image: url('" this.currentBook.coverUrl "')")}}></div>
+          <div class="cover">
+            {{#if this.currentBook.coverUrl}}
+              <img src={{this.currentBook.coverUrl}} alt={{this.currentBook.title}} />
+            {{/if}}
+          </div>
           <div class="details">
             <h3>{{this.currentBook.title}}</h3>
             {{#if this.currentBook.authors}}
