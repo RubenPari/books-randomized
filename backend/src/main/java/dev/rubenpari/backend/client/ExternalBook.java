@@ -1,30 +1,96 @@
 package dev.rubenpari.backend.client;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.rubenpari.backend.client.isbndb.IsbnDbApiBook;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * POJO mapping the HAL+JSON response from the external book database API.
- * Unknown JSON properties are silently ignored to allow forward compatibility.
+ * Normalized book payload consumed by {@link dev.rubenpari.backend.service.BookService},
+ * mapped from ISBNdb API v2 responses.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExternalBook {
+
+    private static final Pattern YEAR_PREFIX = Pattern.compile("^(\\d{4})");
+
     private String id;
     private String title;
     private String description;
-
-    @JsonProperty("_embedded")
-    private Embedded embedded;
-
-    // Enriched from edition endpoint — not present in the book response directly
+    private List<String> authors = List.of();
+    private List<String> categories = List.of();
     private String language;
     private Double rating;
     private Integer year;
-    private String enrichedCoverUrl;
-    private List<String> enrichedCategories;
+    private String coverUrl;
+
+    public static String extractIsbnId(IsbnDbApiBook b) {
+        if (b == null) {
+            return null;
+        }
+        return firstNonBlank(b.getIsbn13(), b.getIsbn10(), b.getIsbnLegacy());
+    }
+
+    public static ExternalBook fromIsbnDb(IsbnDbApiBook b) {
+        ExternalBook e = new ExternalBook();
+        e.setId(extractIsbnId(b));
+        e.setTitle(b.getTitle());
+        e.setDescription(firstNonBlank(b.getSynopsis(), b.getExcerpt()));
+        e.setAuthors(b.getAuthors() != null ? List.copyOf(b.getAuthors()) : List.of());
+        e.setCategories(b.getSubjects() != null ? List.copyOf(b.getSubjects()) : List.of());
+        e.setLanguage(normalizeBookLanguage(b.getLanguage()));
+        e.setYear(parsePublicationYear(b.getDatePublished()));
+        e.setCoverUrl(trimToNull(b.getImage()));
+        e.setRating(null);
+        return e;
+    }
+
+    private static String firstNonBlank(String... parts) {
+        if (parts == null) {
+            return null;
+        }
+        for (String p : parts) {
+            if (StringUtils.hasText(p)) {
+                return p.trim();
+            }
+        }
+        return null;
+    }
+
+    private static String trimToNull(String s) {
+        if (!StringUtils.hasText(s)) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    /**
+     * If ISBNdb returns a full language name, keep it; if it looks like a short code, normalize case.
+     */
+    private static String normalizeBookLanguage(String raw) {
+        String s = trimToNull(raw);
+        if (s == null) {
+            return null;
+        }
+        if (s.length() <= 3 && s.chars().allMatch(Character::isLetter)) {
+            return s.toLowerCase();
+        }
+        return s;
+    }
+
+    private static Integer parsePublicationYear(String datePublished) {
+        String s = trimToNull(datePublished);
+        if (s == null) {
+            return null;
+        }
+        Matcher m = YEAR_PREFIX.matcher(s);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        return null;
+    }
 
     public String getId() {
         return id;
@@ -50,139 +116,51 @@ public class ExternalBook {
         this.description = description;
     }
 
-    @JsonProperty("_embedded")
-    public void setEmbedded(Embedded embedded) {
-        this.embedded = embedded;
-    }
-
-    /** Extracts author names, falling back to persons when authors is empty. */
     public List<String> getAuthors() {
-        List<EmbeddedAuthor> source = (embedded != null && embedded.authors != null && !embedded.authors.isEmpty())
-                ? embedded.authors
-                : (embedded != null && embedded.persons != null ? embedded.persons : List.of());
-        return source.stream()
-                .filter(a -> a.name != null)
-                .map(a -> a.name)
-                .toList();
+        return authors;
     }
 
-    /** Extracts the first image content URL, falling back to an enriched cover from the edition. */
-    public String getCoverUrl() {
-        if (embedded != null && embedded.images != null && !embedded.images.isEmpty()) {
-            EmbeddedImage img = embedded.images.get(0);
-            if (img.links != null && img.links.contentUrl != null) {
-                return img.links.contentUrl.href;
-            }
-        }
-        return enrichedCoverUrl;
+    public void setAuthors(List<String> authors) {
+        this.authors = authors != null ? authors : List.of();
     }
 
-    public void setEnrichedCoverUrl(String enrichedCoverUrl) {
-        this.enrichedCoverUrl = enrichedCoverUrl;
-    }
-
-    /** Extracts subject names as categories, falling back to enriched genres from the edition. */
     public List<String> getCategories() {
-        if (embedded != null && embedded.subjects != null && !embedded.subjects.isEmpty()) {
-            return embedded.subjects.stream()
-                    .filter(s -> s.name != null)
-                    .map(s -> s.name)
-                    .toList();
-        }
-        return enrichedCategories != null ? enrichedCategories : List.of();
+        return categories;
     }
 
-    public void setEnrichedCategories(List<String> enrichedCategories) {
-        this.enrichedCategories = enrichedCategories;
+    public void setCategories(List<String> categories) {
+        this.categories = categories != null ? categories : List.of();
     }
 
-    public String getLanguage() { return language; }
-    public void setLanguage(String language) { this.language = language; }
-
-    public Double getRating() { return rating; }
-    public void setRating(Double rating) { this.rating = rating; }
-
-    public Integer getYear() { return year; }
-    public void setYear(Integer year) { this.year = year; }
-
-    /** Returns the ID of the first edition, used to enrich missing fields. */
-    public String getFirstEditionId() {
-        if (embedded == null || embedded.editions == null || embedded.editions.isEmpty()) {
-            return null;
-        }
-        return embedded.editions.get(0).id;
+    public String getLanguage() {
+        return language;
     }
 
-    // ── Nested mapping classes ───────────────────────────────────────────────
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Embedded {
-        List<EmbeddedAuthor> authors = new ArrayList<>();
-        List<EmbeddedAuthor> persons = new ArrayList<>();
-        List<EmbeddedImage> images = new ArrayList<>();
-        List<EmbeddedSubject> subjects = new ArrayList<>();
-        List<EmbeddedEditionRef> editions = new ArrayList<>();
-
-        public void setAuthors(List<EmbeddedAuthor> authors) { this.authors = authors; }
-        public void setPersons(List<EmbeddedAuthor> persons) { this.persons = persons; }
-        public void setImages(List<EmbeddedImage> images) { this.images = images; }
-        public void setSubjects(List<EmbeddedSubject> subjects) { this.subjects = subjects; }
-        public void setEditions(List<EmbeddedEditionRef> editions) { this.editions = editions; }
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class EmbeddedAuthor {
-        String name;
-
-        public void setName(String name) {
-            this.name = name;
-        }
+    public Double getRating() {
+        return rating;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class EmbeddedSubject {
-        String name;
-
-        public void setName(String name) {
-            this.name = name;
-        }
+    public void setRating(Double rating) {
+        this.rating = rating;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class EmbeddedEditionRef {
-        String id;
-
-        public void setId(String id) {
-            this.id = id;
-        }
+    public Integer getYear() {
+        return year;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class EmbeddedImage {
-        @JsonProperty("_links")
-        ImageLinks links;
-
-        @JsonProperty("_links")
-        public void setLinks(ImageLinks links) {
-            this.links = links;
-        }
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class ImageLinks {
-        ContentUrl contentUrl;
-
-        public void setContentUrl(ContentUrl contentUrl) {
-            this.contentUrl = contentUrl;
-        }
+    public String getCoverUrl() {
+        return coverUrl;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class ContentUrl {
-        String href;
-
-        public void setHref(String href) {
-            this.href = href;
-        }
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

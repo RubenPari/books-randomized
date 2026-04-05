@@ -1,7 +1,7 @@
 package dev.rubenpari.backend.service;
 
-import dev.rubenpari.backend.client.BookDatabaseClient;
 import dev.rubenpari.backend.client.ExternalBook;
+import dev.rubenpari.backend.client.IsbnDbClient;
 import dev.rubenpari.backend.model.Book;
 import dev.rubenpari.backend.model.Discovery;
 import dev.rubenpari.backend.model.User;
@@ -25,20 +25,20 @@ import java.util.UUID;
  */
 @Service
 public class BookService {
-    private final BookDatabaseClient bookDatabaseClient;
+    private final IsbnDbClient isbnDbClient;
     private final BookRepository bookRepository;
     private final DiscoveryRepository discoveryRepository;
     private final UserRepository userRepository;
     private final TranslationService translationService;
 
     public BookService(
-            BookDatabaseClient bookDatabaseClient,
+            IsbnDbClient isbnDbClient,
             BookRepository bookRepository,
             DiscoveryRepository discoveryRepository,
             UserRepository userRepository,
             TranslationService translationService
     ) {
-        this.bookDatabaseClient = bookDatabaseClient;
+        this.isbnDbClient = isbnDbClient;
         this.bookRepository = bookRepository;
         this.discoveryRepository = discoveryRepository;
         this.userRepository = userRepository;
@@ -65,7 +65,7 @@ public class BookService {
         int attempts = 0;
         while (attempts < 5) {
             attempts += 1;
-            ExternalBook external = bookDatabaseClient.fetchRandom(safeFilters);
+            ExternalBook external = isbnDbClient.fetchRandom(safeFilters);
             if (external == null || external.getId() == null) {
                 throw new IllegalStateException("Book API did not return a book");
             }
@@ -82,6 +82,10 @@ public class BookService {
             }
 
             Book book = bookRepository.findByExternalId(external.getId()).orElseGet(() -> mapBook(external));
+            String freshCover = external.getCoverUrl();
+            if (freshCover != null && !freshCover.isBlank()) {
+                book.setCoverUrl(freshCover);
+            }
             if (book.getDescription() != null && targetLanguage != null) {
                 String translated = translationService.translateDescription(book.getDescription(), targetLanguage);
                 book.setDescription(translated);
