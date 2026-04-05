@@ -58,6 +58,10 @@ public class ExternalEdition {
         List<EmbeddedLanguageRef> languages = new ArrayList<>();
         List<EmbeddedImage> images = new ArrayList<>();
         List<EmbeddedGenre> genres = new ArrayList<>();
+
+        public void setLanguages(List<EmbeddedLanguageRef> languages) { this.languages = languages; }
+        public void setImages(List<EmbeddedImage> images) { this.images = images; }
+        public void setGenres(List<EmbeddedGenre> genres) { this.genres = genres; }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

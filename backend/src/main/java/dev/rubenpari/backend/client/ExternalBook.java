@@ -122,6 +122,12 @@ public class ExternalBook {
         List<EmbeddedImage> images = new ArrayList<>();
         List<EmbeddedSubject> subjects = new ArrayList<>();
         List<EmbeddedEditionRef> editions = new ArrayList<>();
+
+        public void setAuthors(List<EmbeddedAuthor> authors) { this.authors = authors; }
+        public void setPersons(List<EmbeddedAuthor> persons) { this.persons = persons; }
+        public void setImages(List<EmbeddedImage> images) { this.images = images; }
+        public void setSubjects(List<EmbeddedSubject> subjects) { this.subjects = subjects; }
+        public void setEditions(List<EmbeddedEditionRef> editions) { this.editions = editions; }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

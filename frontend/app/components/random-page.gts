@@ -17,6 +17,10 @@ interface Book {
   description?: string;
   coverUrl?: string;
   authors?: string[];
+  categories?: string[];
+  language?: string;
+  rating?: number;
+  publicationYear?: number;
 }
 
 export default class RandomPage extends Component {
@@ -137,6 +141,15 @@ export default class RandomPage extends Component {
             <h3>{{this.currentBook.title}}</h3>
             {{#if this.currentBook.authors}}
               <p class="meta">{{this.currentBook.authors}}</p>
+            {{/if}}
+            {{#if this.currentBook.categories}}
+              <p class="meta">{{this.currentBook.categories}}</p>
+            {{/if}}
+            {{#if this.currentBook.language}}
+              <p class="meta">{{this.currentBook.language}}</p>
+            {{/if}}
+            {{#if this.currentBook.publicationYear}}
+              <p class="meta">{{this.currentBook.publicationYear}}</p>
             {{/if}}
             <p>{{this.currentBook.description}}</p>
             <button type="button" class="secondary" {{on "click" this.saveToVault}}>
