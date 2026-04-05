@@ -35,9 +35,36 @@ export default class RandomPage extends Component {
   @tracked yearTo = '';
   @tracked currentBook: Book | null = null;
   @tracked isSaving = false;
+  @tracked coverLoadFailed = false;
+
+  get showCoverImage(): boolean {
+    return Boolean(this.currentBook?.coverUrl && !this.coverLoadFailed);
+  }
+
+  get authorsLine(): string {
+    const a = this.currentBook?.authors;
+    if (!a?.length) {
+      return '';
+    }
+    return Array.isArray(a) ? a.join(', ') : String(a);
+  }
+
+  get categoriesLine(): string {
+    const c = this.currentBook?.categories;
+    if (!c?.length) {
+      return '';
+    }
+    return Array.isArray(c) ? c.join(' · ') : String(c);
+  }
+
+  @action
+  onCoverError() {
+    this.coverLoadFailed = true;
+  }
 
   @action
   async fetchRandomBook() {
+    this.coverLoadFailed = false;
     const book = (await this.api.getRandomBook({
       category: this.category || undefined,
       language: this.language || undefined,
@@ -135,32 +162,52 @@ export default class RandomPage extends Component {
 
       <div class="card book-preview">
         {{#if this.currentBook}}
-          <div class="cover">
-            {{#if this.currentBook.coverUrl}}
-              <img src={{this.currentBook.coverUrl}} alt={{this.currentBook.title}} />
+          <div class="cover {{unless this.showCoverImage "cover-placeholder"}}">
+            {{#if this.showCoverImage}}
+              <img
+                src={{this.currentBook.coverUrl}}
+                alt={{this.currentBook.title}}
+                loading="lazy"
+                decoding="async"
+                {{on "error" this.onCoverError}}
+              />
             {{/if}}
           </div>
           <div class="details">
-            <h3>{{this.currentBook.title}}</h3>
-            {{#if this.currentBook.authors}}
-              <p class="meta">{{this.currentBook.authors}}</p>
+            <div class="details-head">
+              <h3>{{this.currentBook.title}}</h3>
+              {{#if this.authorsLine}}
+                <p class="meta authors">{{this.authorsLine}}</p>
+              {{/if}}
+              <div class="meta-row">
+                {{#if this.currentBook.publicationYear}}
+                  <span class="chip">{{this.currentBook.publicationYear}}</span>
+                {{/if}}
+                {{#if this.currentBook.language}}
+                  <span class="chip">{{this.currentBook.language}}</span>
+                {{/if}}
+                {{#if this.currentBook.rating}}
+                  <span class="chip">★ {{this.currentBook.rating}}</span>
+                {{/if}}
+              </div>
+              {{#if this.categoriesLine}}
+                <p class="meta categories">{{this.categoriesLine}}</p>
+              {{/if}}
+            </div>
+            {{#if this.currentBook.description}}
+              <p class="description">{{this.currentBook.description}}</p>
             {{/if}}
-            {{#if this.currentBook.categories}}
-              <p class="meta">{{this.currentBook.categories}}</p>
-            {{/if}}
-            {{#if this.currentBook.language}}
-              <p class="meta">{{this.currentBook.language}}</p>
-            {{/if}}
-            {{#if this.currentBook.publicationYear}}
-              <p class="meta">{{this.currentBook.publicationYear}}</p>
-            {{/if}}
-            <p>{{this.currentBook.description}}</p>
-            <button type="button" class="secondary" {{on "click" this.saveToVault}}>
+            <button
+              type="button"
+              class="secondary"
+              disabled={{this.isSaving}}
+              {{on "click" this.saveToVault}}
+            >
               {{t "random.saveToVault"}}
             </button>
           </div>
         {{else}}
-          <div class="cover"></div>
+          <div class="cover cover-placeholder cover-empty-state"></div>
           <div class="details">
             <h3>{{t "random.noBook"}}</h3>
             <p>{{t "random.noBookDesc"}}</p>
