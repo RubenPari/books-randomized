@@ -88,7 +88,7 @@ public class IsbnDbClient {
             log.debug("ISBNdb has no ratings; ignoring minRating={}", filters.get("minRating"));
         }
 
-        String chosenSubject = pickOneCategorySearchTerm(filters.get("category"));
+        String chosenSubject = CategorySearchTerms.pickOneRandomTerm(filters.get("category"));
         String searchQuery = chosenSubject != null ? chosenSubject : randomSeedQuery();
         String column = chosenSubject != null ? "subjects" : null;
         String languageParam = toIsbnDbLanguage(trimToNull(filters.get("language")));
@@ -209,27 +209,6 @@ public class IsbnDbClient {
             }
         }
         return out;
-    }
-
-    /**
-     * Client may send several subject filters as a comma-separated list (multiselect).
-     * ISBNdb search uses one query per request; pick one term at random per fetch.
-     */
-    private static String pickOneCategorySearchTerm(String commaSeparated) {
-        if (!StringUtils.hasText(commaSeparated)) {
-            return null;
-        }
-        List<String> parts = new ArrayList<>();
-        for (String part : commaSeparated.split(",")) {
-            String t = part.trim();
-            if (!t.isEmpty()) {
-                parts.add(t);
-            }
-        }
-        if (parts.isEmpty()) {
-            return null;
-        }
-        return parts.get(ThreadLocalRandom.current().nextInt(parts.size()));
     }
 
     private static String trimToNull(String s) {
