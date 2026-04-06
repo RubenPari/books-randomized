@@ -29,7 +29,8 @@ export default class RandomPage extends Component {
   @service declare auth: AuthService;
 
   @tracked category = '';
-  @tracked language = 'it';
+  /** Empty = no API language filter (ISBNdb + English seeds rarely match a fixed locale). */
+  @tracked language = '';
   @tracked minRating = '';
   @tracked yearFrom = '';
   @tracked yearTo = '';
@@ -137,6 +138,7 @@ export default class RandomPage extends Component {
           <label>
             {{t "random.language"}}
             <select value={{this.language}} {{on "change" this.updateLanguage}}>
+              <option value="">{{t "random.languageAny"}}</option>
               <option value="it">Italiano</option>
               <option value="en">English</option>
             </select>
