@@ -10,9 +10,13 @@ import dev.rubenpari.backend.repository.DiscoveryRepository;
 import dev.rubenpari.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -21,7 +25,7 @@ import java.util.UUID;
 /**
  * Core service for book discovery. Fetches random books from the external API,
  * avoids duplicates by checking user history and client-supplied exclude IDs,
- * optionally translates descriptions, and records each discovery.
+ * optionally translates metadata via Google (target locale), and records each discovery.
  */
 @Service
 public class BookService {
@@ -53,6 +57,8 @@ public class BookService {
     @Transactional
     public Book randomBook(UUID userId, String sessionId, Map<String, String> filters, String targetLanguage) {
         Map<String, String> safeFilters = new HashMap<>(filters);
+        safeFilters.remove("language");
+
         Set<String> excluded = new HashSet<>();
         if (filters.containsKey("excludeIds")) {
             for (String id : filters.get("excludeIds").split(",")) {
@@ -92,10 +98,7 @@ public class BookService {
             if (freshCover != null && !freshCover.isBlank()) {
                 book.setCoverUrl(freshCover);
             }
-            if (book.getDescription() != null && targetLanguage != null) {
-                String translated = translationService.translateDescription(book.getDescription(), targetLanguage);
-                book.setDescription(translated);
-            }
+            translateBookMetadata(book, targetLanguage);
             bookRepository.save(book);
 
             if (userId != null) {
@@ -141,5 +144,63 @@ public class BookService {
         book.setDescription(external.getDescription());
         book.setCoverUrl(external.getCoverUrl());
         return book;
+    }
+
+    /**
+     * ISBNdb queries stay unfiltered by language (English-oriented seeds and fields).
+     * Localized strings are produced here via Google Translate when {@code targetLanguage} is set.
+     */
+    private void translateBookMetadata(Book book, String targetLanguage) {
+        if (!StringUtils.hasText(targetLanguage)) {
+            return;
+        }
+
+        List<String> authorList =
+                book.getAuthors() == null ? List.of() : new ArrayList<>(book.getAuthors());
+        List<String> categoryList =
+                book.getCategories() == null ? List.of() : new ArrayList<>(book.getCategories());
+
+        List<String> batch = new ArrayList<>();
+        batch.add(book.getTitle() == null ? "" : book.getTitle());
+        batch.addAll(authorList);
+        batch.addAll(categoryList);
+
+        List<String> translatedBatch = translationService.translatePlainBatch(batch, targetLanguage);
+        if (translatedBatch.size() == batch.size()) {
+            int i = 0;
+            book.setTitle(translatedBatch.get(i++));
+            Set<String> authorsOut = new LinkedHashSet<>();
+            for (int a = 0; a < authorList.size(); a++) {
+                authorsOut.add(translatedBatch.get(i++));
+            }
+            book.setAuthors(authorsOut);
+            Set<String> categoriesOut = new LinkedHashSet<>();
+            for (int c = 0; c < categoryList.size(); c++) {
+                categoriesOut.add(translatedBatch.get(i++));
+            }
+            book.setCategories(categoriesOut);
+        } else {
+            book.setTitle(translationService.translatePlain(book.getTitle(), targetLanguage));
+            Set<String> authorsOut = new LinkedHashSet<>();
+            for (String a : authorList) {
+                authorsOut.add(translationService.translatePlain(a, targetLanguage));
+            }
+            book.setAuthors(authorsOut);
+            Set<String> categoriesOut = new LinkedHashSet<>();
+            for (String c : categoryList) {
+                categoriesOut.add(translationService.translatePlain(c, targetLanguage));
+            }
+            book.setCategories(categoriesOut);
+        }
+
+        String description = book.getDescription();
+        if (!StringUtils.hasText(description)) {
+            return;
+        }
+        boolean looksLikeHtml = description.indexOf('<') >= 0 && description.lastIndexOf('>') > description.indexOf('<');
+        book.setDescription(
+                looksLikeHtml
+                        ? translationService.translateHtml(description, targetLanguage)
+                        : translationService.translatePlain(description, targetLanguage));
     }
 }

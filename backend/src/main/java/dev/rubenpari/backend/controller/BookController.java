@@ -36,7 +36,6 @@ public class BookController {
     public BookResponse randomBook(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String language,
             @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) Integer yearFrom,
             @RequestParam(required = false) Integer yearTo,
@@ -47,9 +46,6 @@ public class BookController {
         Map<String, String> filters = new HashMap<>();
         if (category != null) {
             filters.put("category", category);
-        }
-        if (language != null) {
-            filters.put("language", language);
         }
         if (minRating != null) {
             filters.put("minRating", minRating.toString());
