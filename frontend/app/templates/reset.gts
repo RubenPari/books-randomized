@@ -1,5 +1,3 @@
 import ResetPage from '../components/reset-page';
 
-<template>
-  <ResetPage />
-</template>
+<template><ResetPage /></template>

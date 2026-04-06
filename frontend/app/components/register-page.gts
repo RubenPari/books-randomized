@@ -42,7 +42,8 @@ export default class RegisterPage extends Component {
         preferredLanguage: this.preferredLanguage,
       });
     } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Registrazione fallita';
+      this.error =
+        error instanceof Error ? error.message : 'Registrazione fallita';
     }
   }
 
@@ -56,19 +57,34 @@ export default class RegisterPage extends Component {
       <div class="card">
         <label>
           Nome
-          <input type="text" value={{this.displayName}} {{on "input" this.updateDisplayName}} />
+          <input
+            type="text"
+            value={{this.displayName}}
+            {{on "input" this.updateDisplayName}}
+          />
         </label>
         <label>
           {{t "auth.email"}}
-          <input type="email" value={{this.email}} {{on "input" this.updateEmail}} />
+          <input
+            type="email"
+            value={{this.email}}
+            {{on "input" this.updateEmail}}
+          />
         </label>
         <label>
           {{t "auth.password"}}
-          <input type="password" value={{this.password}} {{on "input" this.updatePassword}} />
+          <input
+            type="password"
+            value={{this.password}}
+            {{on "input" this.updatePassword}}
+          />
         </label>
         <label>
           {{t "settings.language"}}
-          <select value={{this.preferredLanguage}} {{on "change" this.updateLanguage}}>
+          <select
+            value={{this.preferredLanguage}}
+            {{on "change" this.updateLanguage}}
+          >
             <option value="it">Italiano</option>
             <option value="en">English</option>
           </select>
@@ -76,7 +92,9 @@ export default class RegisterPage extends Component {
         {{#if this.error}}
           <p class="error">{{this.error}}</p>
         {{/if}}
-        <button type="button" class="primary" {{on "click" this.submit}}>{{t "auth.register"}}</button>
+        <button type="button" class="primary" {{on "click" this.submit}}>{{t
+            "auth.register"
+          }}</button>
       </div>
     </section>
   </template>

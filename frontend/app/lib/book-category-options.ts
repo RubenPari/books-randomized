@@ -2,7 +2,10 @@
  * Subject search terms for ISBNdb ({@code column=subjects}). Values stay in English
  * for API compatibility; labels use i18n keys {@code random.cat.*}.
  */
-export const BOOK_CATEGORY_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+export const BOOK_CATEGORY_OPTIONS: ReadonlyArray<{
+  value: string;
+  labelKey: string;
+}> = [
   { value: 'Fiction', labelKey: 'random.cat.fiction' },
   { value: 'Nonfiction', labelKey: 'random.cat.nonfiction' },
   { value: 'Fantasy', labelKey: 'random.cat.fantasy' },

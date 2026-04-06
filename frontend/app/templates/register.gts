@@ -1,5 +1,3 @@
 import RegisterPage from '../components/register-page';
 
-<template>
-  <RegisterPage />
-</template>
+<template><RegisterPage /></template>

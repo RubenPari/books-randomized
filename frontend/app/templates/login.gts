@@ -1,5 +1,3 @@
 import LoginPage from '../components/login-page';
 
-<template>
-  <LoginPage />
-</template>
+<template><LoginPage /></template>
