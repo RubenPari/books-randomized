@@ -14,7 +14,6 @@ import org.springframework.web.util.UriBuilder;
 
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -95,7 +94,27 @@ public class IsbnDbClient {
         String languageParam = toIsbnDbLanguage(trimToNull(filters.get("language")));
         Integer yearParam = pickYearFilter(filters);
 
-        IsbnDbBooksResponse first = searchBooks(searchQuery, column, languageParam, yearParam, 1);
+        ExternalBook picked = pickRandomFromSearch(searchQuery, column, languageParam, yearParam);
+        if (picked == null && languageParam != null) {
+            log.debug(
+                    "ISBNdb search yielded no book with language={}; retrying without language filter",
+                    languageParam
+            );
+            picked = pickRandomFromSearch(searchQuery, column, null, yearParam);
+        }
+        return picked;
+    }
+
+    /**
+     * One search flow: first page (and optionally a random later page), then random row with ISBN.
+     */
+    private ExternalBook pickRandomFromSearch(
+            String searchQuery,
+            String column,
+            String language,
+            Integer year
+    ) {
+        IsbnDbBooksResponse first = searchBooks(searchQuery, column, language, year, 1);
         if (first == null || first.getData() == null || first.getData().isEmpty()) {
             return null;
         }
@@ -107,10 +126,9 @@ public class IsbnDbClient {
 
         IsbnDbBooksResponse pageResponse = first;
         if (page > 1) {
-            pageResponse = searchBooks(searchQuery, column, languageParam, yearParam, page);
+            pageResponse = searchBooks(searchQuery, column, language, year, page);
             if (pageResponse == null || pageResponse.getData() == null || pageResponse.getData().isEmpty()) {
                 pageResponse = first;
-                page = 1;
             }
         }
 
@@ -122,8 +140,8 @@ public class IsbnDbClient {
             return null;
         }
 
-        IsbnDbApiBook picked = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
-        return ExternalBook.fromIsbnDb(picked);
+        IsbnDbApiBook choice = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+        return ExternalBook.fromIsbnDb(choice);
     }
 
     private static String randomSeedQuery() {

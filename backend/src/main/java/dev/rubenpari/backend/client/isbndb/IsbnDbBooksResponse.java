@@ -1,17 +1,23 @@
 package dev.rubenpari.backend.client.isbndb;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ISBNdb {@code GetBooksMultipleResponse} for {@code GET /books/{query}}.
+ * ISBNdb list payload for {@code GET /books/{query}} (and similar).
+ * OpenAPI names the array {@code data}; live API responses often use {@code books}.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IsbnDbBooksResponse {
 
     private int total;
+
+    @JsonProperty("data")
+    @JsonAlias("books")
     private List<IsbnDbApiBook> data = new ArrayList<>();
 
     public int getTotal() {
