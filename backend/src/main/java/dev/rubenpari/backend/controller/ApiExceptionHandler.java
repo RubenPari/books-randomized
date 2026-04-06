@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import dev.rubenpari.backend.exception.NotFoundException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.util.HashMap;
@@ -19,6 +20,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class ApiExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
 
     /** Catches business-logic errors thrown as {@link IllegalStateException}. */
     @ExceptionHandler(IllegalStateException.class)
@@ -36,12 +44,12 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    /** Catches external API errors and returns a user-friendly 502 response. */
+    /** Catches upstream HTTP errors from {@link org.springframework.web.client.RestClient} calls. */
     @ExceptionHandler(RestClientResponseException.class)
-    public ResponseEntity<Map<String, String>> handleExternalApiError(RestClientResponseException ex) {
-        log.error("External API error: {} - {}", ex.getStatusCode(), ex.getResponseBodyAsString());
+    public ResponseEntity<Map<String, String>> handleRestClientError(RestClientResponseException ex) {
+        log.error("Upstream HTTP error: {} - {}", ex.getStatusCode(), ex.getResponseBodyAsString());
         Map<String, String> body = new HashMap<>();
-        body.put("error", "Book database service unavailable. Please try again later.");
+        body.put("error", "An external service failed. Please try again later.");
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
     }
 

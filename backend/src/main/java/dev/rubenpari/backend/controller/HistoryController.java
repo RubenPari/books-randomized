@@ -1,8 +1,9 @@
 package dev.rubenpari.backend.controller;
 
-import dev.rubenpari.backend.dto.BookResponse;
+import dev.rubenpari.backend.dto.BookMapper;
 import dev.rubenpari.backend.dto.DiscoveryResponse;
 import dev.rubenpari.backend.model.Discovery;
+import dev.rubenpari.backend.security.AuthUserIds;
 import dev.rubenpari.backend.service.DiscoveryService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,33 +22,23 @@ import java.util.UUID;
 @RequestMapping("/api/history")
 public class HistoryController {
     private final DiscoveryService discoveryService;
+    private final BookMapper bookMapper;
 
-    public HistoryController(DiscoveryService discoveryService) {
+    public HistoryController(DiscoveryService discoveryService, BookMapper bookMapper) {
         this.discoveryService = discoveryService;
+        this.bookMapper = bookMapper;
     }
 
     @GetMapping
     public List<DiscoveryResponse> list(@AuthenticationPrincipal UserDetails userDetails) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         return discoveryService.listHistory(userId).stream().map(this::mapDiscovery).toList();
     }
 
     private DiscoveryResponse mapDiscovery(Discovery discovery) {
-        BookResponse book = new BookResponse(
-                discovery.getBook().getId().toString(),
-                discovery.getBook().getExternalId(),
-                discovery.getBook().getTitle(),
-                discovery.getBook().getAuthors(),
-                discovery.getBook().getCategories(),
-                discovery.getBook().getLanguage(),
-                discovery.getBook().getRating(),
-                discovery.getBook().getPublicationYear(),
-                discovery.getBook().getDescription(),
-                discovery.getBook().getCoverUrl()
-        );
         return new DiscoveryResponse(
                 discovery.getId().toString(),
-                book,
+                bookMapper.toResponse(discovery.getBook()),
                 discovery.getSessionId(),
                 discovery.getDiscoveredAt()
         );

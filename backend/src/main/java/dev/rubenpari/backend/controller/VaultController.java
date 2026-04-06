@@ -1,10 +1,11 @@
 package dev.rubenpari.backend.controller;
 
-import dev.rubenpari.backend.dto.BookResponse;
+import dev.rubenpari.backend.dto.BookMapper;
 import dev.rubenpari.backend.dto.VaultImportRequest;
 import dev.rubenpari.backend.dto.VaultEntryRequest;
 import dev.rubenpari.backend.dto.VaultEntryResponse;
 import dev.rubenpari.backend.model.VaultEntry;
+import dev.rubenpari.backend.security.AuthUserIds;
 import dev.rubenpari.backend.service.VaultService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,58 +30,48 @@ import java.util.UUID;
 @RequestMapping("/api/vault")
 public class VaultController {
     private final VaultService vaultService;
+    private final BookMapper bookMapper;
 
-    public VaultController(VaultService vaultService) {
+    public VaultController(VaultService vaultService, BookMapper bookMapper) {
         this.vaultService = vaultService;
+        this.bookMapper = bookMapper;
     }
 
     @GetMapping
     public List<VaultEntryResponse> list(@AuthenticationPrincipal UserDetails userDetails) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         return vaultService.listVault(userId).stream().map(this::mapEntry).toList();
     }
 
     @PostMapping
     public VaultEntryResponse add(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody VaultEntryRequest request) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         VaultEntry entry = vaultService.addToVault(userId, request);
         return mapEntry(entry);
     }
 
     @DeleteMapping("/{entryId}")
     public void remove(@AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID entryId) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         vaultService.removeFromVault(userId, entryId);
     }
 
     @GetMapping("/export")
     public List<VaultEntryResponse> exportVault(@AuthenticationPrincipal UserDetails userDetails) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         return vaultService.listVault(userId).stream().map(this::mapEntry).toList();
     }
 
     @PostMapping("/import")
     public void importVault(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody VaultImportRequest request) {
-        UUID userId = UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.userId(userDetails);
         vaultService.importEntries(userId, request.entries());
     }
 
     private VaultEntryResponse mapEntry(VaultEntry entry) {
-        BookResponse book = new BookResponse(
-                entry.getBook().getId().toString(),
-                entry.getBook().getExternalId(),
-                entry.getBook().getTitle(),
-                entry.getBook().getAuthors(),
-                entry.getBook().getCategories(),
-                entry.getBook().getLanguage(),
-                entry.getBook().getRating(),
-                entry.getBook().getPublicationYear(),
-                entry.getBook().getDescription(),
-                entry.getBook().getCoverUrl()
-        );
         return new VaultEntryResponse(
                 entry.getId().toString(),
-                book,
+                bookMapper.toResponse(entry.getBook()),
                 entry.getNote(),
                 entry.getPersonalRating(),
                 entry.getCreatedAt()

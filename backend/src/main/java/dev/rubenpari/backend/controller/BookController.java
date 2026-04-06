@@ -1,8 +1,11 @@
 package dev.rubenpari.backend.controller;
 
+import dev.rubenpari.backend.dto.BookMapper;
 import dev.rubenpari.backend.dto.BookResponse;
+import dev.rubenpari.backend.exception.NotFoundException;
 import dev.rubenpari.backend.model.Book;
 import dev.rubenpari.backend.repository.BookRepository;
+import dev.rubenpari.backend.security.AuthUserIds;
 import dev.rubenpari.backend.service.BookService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,10 +28,12 @@ import java.util.UUID;
 public class BookController {
     private final BookService bookService;
     private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
 
-    public BookController(BookService bookService, BookRepository bookRepository) {
+    public BookController(BookService bookService, BookRepository bookRepository, BookMapper bookMapper) {
         this.bookService = bookService;
         this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
     }
 
     /** Returns a random book matching the given filters, avoiding previously discovered books. */
@@ -60,30 +65,15 @@ public class BookController {
             filters.put("excludeIds", excludeIds);
         }
 
-        UUID userId = userDetails == null ? null : UUID.fromString(userDetails.getUsername());
+        UUID userId = AuthUserIds.nullableUserId(userDetails);
         Book book = bookService.randomBook(userId, sessionId, filters, targetLanguage);
-        return mapBook(book);
+        return bookMapper.toResponse(book);
     }
 
     @GetMapping("/{externalId}")
     public BookResponse getBook(@PathVariable String externalId) {
         Book book = bookRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new IllegalStateException("Book not found"));
-        return mapBook(book);
-    }
-
-    private BookResponse mapBook(Book book) {
-        return new BookResponse(
-                book.getId().toString(),
-                book.getExternalId(),
-                book.getTitle(),
-                book.getAuthors(),
-                book.getCategories(),
-                book.getLanguage(),
-                book.getRating(),
-                book.getPublicationYear(),
-                book.getDescription(),
-                book.getCoverUrl()
-        );
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        return bookMapper.toResponse(book);
     }
 }
