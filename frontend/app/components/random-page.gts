@@ -1,13 +1,26 @@
 import Component from '@glimmer/component';
+import { helper } from '@ember/component/helper';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
+import { htmlSafe, type SafeString } from '@ember/template';
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 import type ApiService from '../services/api';
 import type I18nService from '../services/i18n';
 import type DiscoveryHistoryService from '../services/discovery-history';
 import type AuthService from '../services/auth';
+import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category-options';
+
+/** Template helper: strict-mode templates cannot call component methods with args (loses `this`). */
+const categoryChecked = helper(function (positional: unknown[]) {
+  const selected = positional[0] as string[] | undefined;
+  const value = positional[1] as string | undefined;
+  if (!value || !selected?.length) {
+    return false;
+  }
+  return selected.includes(value);
+});
 
 interface Book {
   id: string;
@@ -28,9 +41,9 @@ export default class RandomPage extends Component {
   @service declare discoveryHistory: DiscoveryHistoryService;
   @service declare auth: AuthService;
 
-  @tracked category = '';
-  /** Empty = no API language filter (ISBNdb + English seeds rarely match a fixed locale). */
-  @tracked language = '';
+  readonly categoryOptions = BOOK_CATEGORY_OPTIONS;
+
+  @tracked selectedCategories: string[] = [];
   @tracked minRating = '';
   @tracked yearFrom = '';
   @tracked yearTo = '';
@@ -58,6 +71,15 @@ export default class RandomPage extends Component {
     return Array.isArray(c) ? c.join(' · ') : String(c);
   }
 
+  /** ISBNdb / API descriptions are often HTML; mark safe so tags render (not escaped). */
+  get descriptionHtml(): SafeString {
+    const raw = this.currentBook?.description?.trim();
+    if (!raw) {
+      return htmlSafe('');
+    }
+    return htmlSafe(raw);
+  }
+
   @action
   onCoverError() {
     this.coverLoadFailed = true;
@@ -67,8 +89,7 @@ export default class RandomPage extends Component {
   async fetchRandomBook() {
     this.coverLoadFailed = false;
     const book = (await this.api.getRandomBook({
-      category: this.category || undefined,
-      language: this.language || undefined,
+      category: this.selectedCategories.length > 0 ? this.selectedCategories.join(',') : undefined,
       minRating: this.minRating || undefined,
       yearFrom: this.yearFrom || undefined,
       yearTo: this.yearTo || undefined,
@@ -102,12 +123,23 @@ export default class RandomPage extends Component {
     }
   }
 
-  @action updateCategory(event: Event) {
-    this.category = (event.target as HTMLInputElement).value;
+  @action
+  onCategoryCheckboxChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    const checked = input.checked;
+    if (checked) {
+      if (!this.selectedCategories.includes(value)) {
+        this.selectedCategories = [...this.selectedCategories, value];
+      }
+    } else {
+      this.selectedCategories = this.selectedCategories.filter((v) => v !== value);
+    }
   }
 
-  @action updateLanguage(event: Event) {
-    this.language = (event.target as HTMLSelectElement).value;
+  @action
+  clearCategories() {
+    this.selectedCategories = [];
   }
 
   @action updateMinRating(event: Event) {
@@ -131,18 +163,28 @@ export default class RandomPage extends Component {
 
       <div class="card">
         <div class="filters">
-          <label>
-            {{t "random.category"}}
-            <input type="text" placeholder="Es. Fantasy" value={{this.category}} {{on "input" this.updateCategory}} />
-          </label>
-          <label>
-            {{t "random.language"}}
-            <select value={{this.language}} {{on "change" this.updateLanguage}}>
-              <option value="">{{t "random.languageAny"}}</option>
-              <option value="it">Italiano</option>
-              <option value="en">English</option>
-            </select>
-          </label>
+          <fieldset class="category-multiselect">
+            <legend>{{t "random.category"}}</legend>
+            <p class="category-hint">{{t "random.categoryHint"}}</p>
+            <div class="category-checkboxes">
+              {{#each this.categoryOptions as |opt|}}
+                <label class="category-option">
+                  <input
+                    type="checkbox"
+                    value={{opt.value}}
+                    checked={{categoryChecked this.selectedCategories opt.value}}
+                    {{on "change" this.onCategoryCheckboxChange}}
+                  />
+                  <span>{{t opt.labelKey}}</span>
+                </label>
+              {{/each}}
+            </div>
+            {{#if this.selectedCategories.length}}
+              <button type="button" class="category-clear" {{on "click" this.clearCategories}}>
+                {{t "random.categoryClear"}}
+              </button>
+            {{/if}}
+          </fieldset>
           <label>
             {{t "random.minRating"}}
             <input type="number" min="0" max="5" step="0.1" value={{this.minRating}} {{on "input" this.updateMinRating}} />
@@ -197,7 +239,7 @@ export default class RandomPage extends Component {
               {{/if}}
             </div>
             {{#if this.currentBook.description}}
-              <p class="description">{{this.currentBook.description}}</p>
+              <div class="description">{{this.descriptionHtml}}</div>
             {{/if}}
             <button
               type="button"
