@@ -1,69 +1,99 @@
 import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
 import t from '../helpers/t';
 import type ApiService from '../services/api';
-import type I18nService from '../services/i18n';
+import type TranslationsService from '../services/translations';
+import {
+  vaultExportToImportEntries,
+  VaultImportParseError,
+} from '../lib/vault-import';
+import type { VaultEntryResponse } from '../../types/api';
 
-interface VaultEntry {
-  book: {
-    title: string;
-    authors?: string;
-    externalId: string;
-  };
-  note?: string;
-  personalRating?: number;
-}
+const VAULT_PARSE_I18N: Record<string, string> = {
+  INVALID_STRUCTURE: 'vault.importErrorStructure',
+  INVALID_ENTRY: 'vault.importErrorEntry',
+  INVALID_BOOK: 'vault.importErrorBook',
+  MISSING_EXTERNAL_ID: 'vault.importErrorExternalId',
+};
 
 interface Signature {
   Args: {
-    model: VaultEntry[];
+    model: VaultEntryResponse[];
   };
 }
 
 export default class VaultPage extends Component<Signature> {
   @service declare api: ApiService;
-  @service declare i18n: I18nService;
+  @service declare translations: TranslationsService;
+
+  @tracked exportError: string | null = null;
+  @tracked importError: string | null = null;
 
   @action
   async exportVault() {
+    this.exportError = null;
     try {
       const data = await this.api.listVault();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `vault-export-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      this.exportError =
+        e instanceof Error
+          ? e.message
+          : this.translations.t('vault.exportFailed');
     }
   }
 
   @action
-  async importVault(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
+  importVault(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.importError = null;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
-        const data = JSON.parse(content);
+        let data: unknown;
+        try {
+          data = JSON.parse(content);
+        } catch {
+          this.importError = this.translations.t('vault.importJsonInvalid');
+          input.value = '';
+          return;
+        }
 
-        const entries = data.map((entry: any) => ({
-          externalBookId: entry.book.externalId,
-          note: entry.note,
-          personalRating: entry.personalRating
-        }));
-
+        const entries = vaultExportToImportEntries(data);
         await this.api.importVault(entries);
-        alert(this.i18n.locale === 'it' ? 'Importazione completata!' : 'Import completed!');
+        input.value = '';
         window.location.reload();
-      } catch (err: any) {
-        alert('Invalid JSON file: ' + err.message);
+      } catch (err: unknown) {
+        if (err instanceof VaultImportParseError) {
+          const key = VAULT_PARSE_I18N[err.code];
+          this.importError = key
+            ? this.translations.t(key)
+            : this.translations.t('vault.importFailed');
+        } else {
+          this.importError =
+            err instanceof Error
+              ? err.message
+              : this.translations.t('vault.importFailed');
+        }
+        input.value = '';
       }
     };
     reader.readAsText(file);
@@ -75,14 +105,29 @@ export default class VaultPage extends Component<Signature> {
         <h2>{{t "vault.title"}}</h2>
         <p>{{t "vault.description"}}</p>
         <div class="actions">
-          <button type="button" class="secondary" {{on "click" this.exportVault}}>
+          <button
+            type="button"
+            class="secondary"
+            {{on "click" this.exportVault}}
+          >
             {{t "vault.export"}}
           </button>
           <label class="button secondary">
             {{t "vault.import"}}
-            <input type="file" accept=".json" hidden {{on "change" this.importVault}} />
+            <input
+              type="file"
+              accept=".json"
+              hidden
+              {{on "change" this.importVault}}
+            />
           </label>
         </div>
+        {{#if this.exportError}}
+          <p class="error vault-banner">{{this.exportError}}</p>
+        {{/if}}
+        {{#if this.importError}}
+          <p class="error vault-banner">{{this.importError}}</p>
+        {{/if}}
       </header>
 
       {{#if @model.length}}
@@ -90,12 +135,18 @@ export default class VaultPage extends Component<Signature> {
           {{#each @model as |entry|}}
             <div class="card list-item">
               <h3>{{entry.book.title}}</h3>
-              <p class="meta">{{entry.book.authors}}</p>
+              {{#if entry.book.authors}}
+                <p class="meta">
+                  {{#each entry.book.authors as |author i|}}
+                    {{#if i}} · {{/if}}{{author}}
+                  {{/each}}
+                </p>
+              {{/if}}
               {{#if entry.note}}
                 <p>{{entry.note}}</p>
               {{/if}}
               {{#if entry.personalRating}}
-                <p>Rating: {{entry.personalRating}}</p>
+                <p>{{t "vault.rating"}}: {{entry.personalRating}}</p>
               {{/if}}
             </div>
           {{/each}}
