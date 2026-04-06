@@ -1,5 +1,6 @@
 import Route from '@ember/routing/route';
 import { service } from '@ember/service';
+import type { DiscoveryResponse } from '../../types/api';
 import type ApiService from '../services/api';
 import type DiscoveryHistoryService from '../services/discovery-history';
 import type AuthService from '../services/auth';
@@ -15,7 +16,7 @@ export default class HistoryRoute extends Route {
   @service declare auth: AuthService;
 
   async model() {
-    let remoteHistory: any[] = [];
+    let remoteHistory: DiscoveryResponse[] = [];
     if (this.auth.accessToken) {
       try {
         remoteHistory = await this.api.listHistory();
@@ -39,7 +40,8 @@ export default class HistoryRoute extends Route {
     });
 
     return combined.sort(
-      (a, b) => new Date(b.discoveredAt).getTime() - new Date(a.discoveredAt).getTime()
+      (a, b) =>
+        new Date(b.discoveredAt).getTime() - new Date(a.discoveredAt).getTime()
     );
   }
 }
