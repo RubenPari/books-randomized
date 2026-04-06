@@ -23,12 +23,13 @@ public class MailtrapService {
     private final String fromName;
 
     public MailtrapService(
+            RestClient.Builder restClientBuilder,
             @Value("${app.mailtrap.api-base-url}") String apiBaseUrl,
             @Value("${app.mailtrap.api-token}") String apiToken,
             @Value("${app.mailtrap.from-email}") String fromEmail,
             @Value("${app.mailtrap.from-name}") String fromName
     ) {
-        this.restClient = RestClient.builder().baseUrl(apiBaseUrl).build();
+        this.restClient = restClientBuilder.baseUrl(apiBaseUrl).build();
         this.apiToken = apiToken;
         this.fromEmail = fromEmail;
         this.fromName = fromName;

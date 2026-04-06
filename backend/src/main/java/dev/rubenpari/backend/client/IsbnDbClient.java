@@ -71,11 +71,12 @@ public class IsbnDbClient {
     private final String apiKey;
 
     public IsbnDbClient(
+            RestClient.Builder restClientBuilder,
             @Value("${app.isbndb.base-url}") String baseUrl,
             @Value("${app.isbndb.api-key}") String apiKey
     ) {
         String normalized = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.restClient = RestClient.builder().baseUrl(normalized).build();
+        this.restClient = restClientBuilder.baseUrl(normalized).build();
         this.apiKey = apiKey;
     }
 
