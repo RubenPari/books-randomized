@@ -160,6 +160,16 @@ public class BookService {
         List<String> categoryList =
                 book.getCategories() == null ? List.of() : new ArrayList<>(book.getCategories());
 
+        translateTitleAuthorsAndCategories(book, targetLanguage, authorList, categoryList);
+        translateDescriptionIfPresent(book, targetLanguage);
+    }
+
+    private void translateTitleAuthorsAndCategories(
+            Book book,
+            String targetLanguage,
+            List<String> authorList,
+            List<String> categoryList
+    ) {
         List<String> batch = new ArrayList<>();
         batch.add(book.getTitle() == null ? "" : book.getTitle());
         batch.addAll(authorList);
@@ -167,37 +177,58 @@ public class BookService {
 
         List<String> translatedBatch = translationService.translatePlainBatch(batch, targetLanguage);
         if (translatedBatch.size() == batch.size()) {
-            int i = 0;
-            book.setTitle(translatedBatch.get(i++));
-            Set<String> authorsOut = new LinkedHashSet<>();
-            for (int a = 0; a < authorList.size(); a++) {
-                authorsOut.add(translatedBatch.get(i++));
-            }
-            book.setAuthors(authorsOut);
-            Set<String> categoriesOut = new LinkedHashSet<>();
-            for (int c = 0; c < categoryList.size(); c++) {
-                categoriesOut.add(translatedBatch.get(i++));
-            }
-            book.setCategories(categoriesOut);
+            applyTranslatedTitleAuthorsCategories(book, authorList.size(), categoryList.size(), translatedBatch);
         } else {
-            book.setTitle(translationService.translatePlain(book.getTitle(), targetLanguage));
-            Set<String> authorsOut = new LinkedHashSet<>();
-            for (String a : authorList) {
-                authorsOut.add(translationService.translatePlain(a, targetLanguage));
-            }
-            book.setAuthors(authorsOut);
-            Set<String> categoriesOut = new LinkedHashSet<>();
-            for (String c : categoryList) {
-                categoriesOut.add(translationService.translatePlain(c, targetLanguage));
-            }
-            book.setCategories(categoriesOut);
+            applyTitleAuthorsCategoriesFallback(book, targetLanguage, authorList, categoryList);
         }
+    }
 
+    private static void applyTranslatedTitleAuthorsCategories(
+            Book book,
+            int authorCount,
+            int categoryCount,
+            List<String> translatedBatch
+    ) {
+        int i = 0;
+        book.setTitle(translatedBatch.get(i++));
+        Set<String> authorsOut = new LinkedHashSet<>();
+        for (int a = 0; a < authorCount; a++) {
+            authorsOut.add(translatedBatch.get(i++));
+        }
+        book.setAuthors(authorsOut);
+        Set<String> categoriesOut = new LinkedHashSet<>();
+        for (int c = 0; c < categoryCount; c++) {
+            categoriesOut.add(translatedBatch.get(i++));
+        }
+        book.setCategories(categoriesOut);
+    }
+
+    private void applyTitleAuthorsCategoriesFallback(
+            Book book,
+            String targetLanguage,
+            List<String> authorList,
+            List<String> categoryList
+    ) {
+        book.setTitle(translationService.translatePlain(book.getTitle(), targetLanguage));
+        Set<String> authorsOut = new LinkedHashSet<>();
+        for (String a : authorList) {
+            authorsOut.add(translationService.translatePlain(a, targetLanguage));
+        }
+        book.setAuthors(authorsOut);
+        Set<String> categoriesOut = new LinkedHashSet<>();
+        for (String c : categoryList) {
+            categoriesOut.add(translationService.translatePlain(c, targetLanguage));
+        }
+        book.setCategories(categoriesOut);
+    }
+
+    private void translateDescriptionIfPresent(Book book, String targetLanguage) {
         String description = book.getDescription();
         if (!StringUtils.hasText(description)) {
             return;
         }
-        boolean looksLikeHtml = description.indexOf('<') >= 0 && description.lastIndexOf('>') > description.indexOf('<');
+        boolean looksLikeHtml =
+                description.indexOf('<') >= 0 && description.lastIndexOf('>') > description.indexOf('<');
         book.setDescription(
                 looksLikeHtml
                         ? translationService.translateHtml(description, targetLanguage)
