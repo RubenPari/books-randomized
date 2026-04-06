@@ -2,6 +2,7 @@ package dev.rubenpari.backend.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -27,16 +28,10 @@ public class TranslationService {
     private final String apiKey;
 
     public TranslationService(
-            @Value("${app.translator.api-base-url}") String apiBaseUrl,
+            @Qualifier("translateRestClient") RestClient translateRestClient,
             @Value("${app.translator.api-key}") String apiKey
     ) {
-        String normalized = apiBaseUrl.endsWith("/") ? apiBaseUrl.substring(0, apiBaseUrl.length() - 1) : apiBaseUrl;
-        if (!StringUtils.hasText(normalized)) {
-            normalized = "https://translation.googleapis.com/language/translate/v2";
-        } else if (!normalized.contains("/language/translate/v2")) {
-            normalized = normalized + "/language/translate/v2";
-        }
-        this.restClient = RestClient.builder().baseUrl(normalized).build();
+        this.restClient = translateRestClient;
         this.apiKey = apiKey;
     }
 
