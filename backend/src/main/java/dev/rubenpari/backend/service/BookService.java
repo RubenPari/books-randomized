@@ -63,14 +63,19 @@ public class BookService {
         }
 
         int attempts = 0;
+        boolean receivedAnyCandidate = false;
+        boolean rejectedAsDuplicate = false;
         while (attempts < 5) {
             attempts += 1;
             ExternalBook external = isbnDbClient.fetchRandom(safeFilters);
             if (external == null || external.getId() == null) {
-                throw new IllegalStateException("Book API did not return a book");
+                continue;
             }
 
+            receivedAnyCandidate = true;
+
             if (excluded.contains(external.getId())) {
+                rejectedAsDuplicate = true;
                 continue;
             }
 
@@ -78,6 +83,7 @@ public class BookService {
                     ? Optional.empty()
                     : discoveryRepository.findByUserIdAndExternalId(userId, external.getId());
             if (existingDiscovery.isPresent()) {
+                rejectedAsDuplicate = true;
                 continue;
             }
 
@@ -105,7 +111,13 @@ public class BookService {
             return book;
         }
 
-        throw new IllegalStateException("Unable to find a new book without duplicates");
+        if (receivedAnyCandidate && rejectedAsDuplicate) {
+            throw new IllegalStateException(
+                    "No new book found after several tries (all were already discovered or excluded). "
+                            + "Clear history or widen filters.");
+        }
+        throw new IllegalStateException(
+                "Book API did not return a usable book after several attempts (check ISBNDB_API_KEY and filters)");
     }
 
     /** Maps an external API response to a local {@link Book} entity. */
