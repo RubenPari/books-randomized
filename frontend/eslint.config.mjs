@@ -76,8 +76,25 @@ export default defineConfig([
     languageOptions: {
       parser: ember.parser,
       parserOptions: parserOptions.esm.ts,
+      globals: {
+        ...globals.browser,
+      },
     },
     extends: [...ts.configs.recommendedTypeChecked, ember.configs.gts],
+  },
+  {
+    files: ['app/services/api.ts'],
+    rules: {
+      // Refresh uses raw fetch so a 401 from request() does not recurse into itself.
+      'warp-drive/no-external-request-patterns': 'off',
+    },
+  },
+  {
+    files: ['app/components/vault-page.gts'],
+    rules: {
+      // Full page reload is the simplest way to reload the vault route model after bulk import.
+      'warp-drive/no-legacy-request-patterns': 'off',
+    },
   },
   {
     files: ['tests/**/*-test.{js,gjs,ts,gts}'],
