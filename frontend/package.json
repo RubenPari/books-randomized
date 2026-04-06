@@ -54,6 +54,7 @@
     "@glint/template": "^1.7.4",
     "@glint/tsserver-plugin": "^2.1.0",
     "@rollup/plugin-babel": "^6.1.0",
+    "@types/dompurify": "^3.0.5",
     "@types/qunit": "^2.19.13",
     "@types/rsvp": "^4.0.9",
     "@warp-drive/core": "~5.8.1",
@@ -98,5 +99,8 @@
   },
   "ember": {
     "edition": "octane"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.3"
   }
 }

@@ -5,12 +5,16 @@ import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { htmlSafe, type SafeString } from '@ember/template';
 import { on } from '@ember/modifier';
+import DOMPurify from 'dompurify';
 import t from '../helpers/t';
 import type ApiService from '../services/api';
 import type I18nService from '../services/i18n';
 import type DiscoveryHistoryService from '../services/discovery-history';
 import type AuthService from '../services/auth';
+import type TranslationsService from '../services/translations';
 import { BOOK_CATEGORY_OPTIONS } from '../lib/book-category-options';
+import type { BookResponse } from '../../types/api';
+import type { BookSummary } from '../../types/book';
 
 /** Template helper: strict-mode templates cannot call component methods with args (loses `this`). */
 const categoryChecked = helper(function (positional: unknown[]) {
@@ -22,24 +26,12 @@ const categoryChecked = helper(function (positional: unknown[]) {
   return selected.includes(value);
 });
 
-interface Book {
-  id: string;
-  externalId: string;
-  title: string;
-  description?: string;
-  coverUrl?: string;
-  authors?: string[];
-  categories?: string[];
-  language?: string;
-  rating?: number;
-  publicationYear?: number;
-}
-
 export default class RandomPage extends Component {
   @service declare api: ApiService;
   @service declare i18n: I18nService;
   @service declare discoveryHistory: DiscoveryHistoryService;
   @service declare auth: AuthService;
+  @service declare translations: TranslationsService;
 
   readonly categoryOptions = BOOK_CATEGORY_OPTIONS;
 
@@ -47,9 +39,11 @@ export default class RandomPage extends Component {
   @tracked minRating = '';
   @tracked yearFrom = '';
   @tracked yearTo = '';
-  @tracked currentBook: Book | null = null;
+  @tracked currentBook: BookResponse | null = null;
   @tracked isSaving = false;
   @tracked coverLoadFailed = false;
+  @tracked saveFeedback: string | null = null;
+  @tracked saveError: string | null = null;
 
   get showCoverImage(): boolean {
     return Boolean(this.currentBook?.coverUrl && !this.coverLoadFailed);
@@ -77,7 +71,8 @@ export default class RandomPage extends Component {
     if (!raw) {
       return htmlSafe('');
     }
-    return htmlSafe(raw);
+    const clean = DOMPurify.sanitize(raw, { USE_PROFILES: { html: true } });
+    return htmlSafe(clean);
   }
 
   @action
@@ -88,36 +83,55 @@ export default class RandomPage extends Component {
   @action
   async fetchRandomBook() {
     this.coverLoadFailed = false;
-    const book = (await this.api.getRandomBook({
-      category: this.selectedCategories.length > 0 ? this.selectedCategories.join(',') : undefined,
+    this.saveFeedback = null;
+    this.saveError = null;
+    const book = await this.api.getRandomBook({
+      category:
+        this.selectedCategories.length > 0
+          ? this.selectedCategories.join(',')
+          : undefined,
       minRating: this.minRating || undefined,
       yearFrom: this.yearFrom || undefined,
       yearTo: this.yearTo || undefined,
       targetLanguage: this.i18n.locale,
       excludeIds: this.discoveryHistory.ids.join(','),
-    })) as Book;
+    });
 
     this.currentBook = book;
     if (book.externalId) {
-      this.discoveryHistory.add(book);
+      const summary: BookSummary = {
+        id: book.id,
+        externalId: book.externalId,
+        title: book.title,
+        description: book.description ?? undefined,
+        coverUrl: book.coverUrl ?? undefined,
+        authors: book.authors,
+      };
+      this.discoveryHistory.add(summary);
     }
   }
 
   @action
   async saveToVault() {
-    if (!this.currentBook || !this.auth.accessToken) {
-      if (!this.auth.accessToken) {
-        alert(this.i18n.locale === 'it' ? 'Devi accedere per salvare nel Vault.' : 'You must login to save to Vault.');
-      }
+    this.saveFeedback = null;
+    this.saveError = null;
+    if (!this.currentBook) {
+      return;
+    }
+    if (!this.auth.accessToken) {
+      this.saveError = this.translations.t('random.saveRequiresLogin');
       return;
     }
 
     this.isSaving = true;
     try {
       await this.api.addToVault(this.currentBook.externalId);
-      alert(this.i18n.locale === 'it' ? 'Aggiunto al Vault!' : 'Added to Vault!');
-    } catch (e: any) {
-      alert(e.message);
+      this.saveFeedback = this.translations.t('random.saveSuccess');
+    } catch (e: unknown) {
+      this.saveError =
+        e instanceof Error
+          ? e.message
+          : this.translations.t('random.saveFailed');
     } finally {
       this.isSaving = false;
     }
@@ -133,7 +147,9 @@ export default class RandomPage extends Component {
         this.selectedCategories = [...this.selectedCategories, value];
       }
     } else {
-      this.selectedCategories = this.selectedCategories.filter((v) => v !== value);
+      this.selectedCategories = this.selectedCategories.filter(
+        (v) => v !== value
+      );
     }
   }
 
@@ -172,7 +188,10 @@ export default class RandomPage extends Component {
                   <input
                     type="checkbox"
                     value={{opt.value}}
-                    checked={{categoryChecked this.selectedCategories opt.value}}
+                    checked={{categoryChecked
+                      this.selectedCategories
+                      opt.value
+                    }}
                     {{on "change" this.onCategoryCheckboxChange}}
                   />
                   <span>{{t opt.labelKey}}</span>
@@ -180,33 +199,56 @@ export default class RandomPage extends Component {
               {{/each}}
             </div>
             {{#if this.selectedCategories.length}}
-              <button type="button" class="category-clear" {{on "click" this.clearCategories}}>
+              <button
+                type="button"
+                class="category-clear"
+                {{on "click" this.clearCategories}}
+              >
                 {{t "random.categoryClear"}}
               </button>
             {{/if}}
           </fieldset>
           <label>
             {{t "random.minRating"}}
-            <input type="number" min="0" max="5" step="0.1" value={{this.minRating}} {{on "input" this.updateMinRating}} />
+            <input
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              value={{this.minRating}}
+              {{on "input" this.updateMinRating}}
+            />
           </label>
           <label>
             {{t "random.yearFrom"}}
-            <input type="number" value={{this.yearFrom}} {{on "input" this.updateYearFrom}} />
+            <input
+              type="number"
+              value={{this.yearFrom}}
+              {{on "input" this.updateYearFrom}}
+            />
           </label>
           <label>
             {{t "random.yearTo"}}
-            <input type="number" value={{this.yearTo}} {{on "input" this.updateYearTo}} />
+            <input
+              type="number"
+              value={{this.yearTo}}
+              {{on "input" this.updateYearTo}}
+            />
           </label>
         </div>
 
-        <button type="button" class="primary" {{on "click" this.fetchRandomBook}}>
+        <button
+          type="button"
+          class="primary"
+          {{on "click" this.fetchRandomBook}}
+        >
           {{t "random.generate"}}
         </button>
       </div>
 
       <div class="card book-preview">
         {{#if this.currentBook}}
-          <div class="cover {{unless this.showCoverImage "cover-placeholder"}}">
+          <div class="cover {{unless this.showCoverImage 'cover-placeholder'}}">
             {{#if this.showCoverImage}}
               <img
                 src={{this.currentBook.coverUrl}}
@@ -249,6 +291,12 @@ export default class RandomPage extends Component {
             >
               {{t "random.saveToVault"}}
             </button>
+            {{#if this.saveFeedback}}
+              <p class="success">{{this.saveFeedback}}</p>
+            {{/if}}
+            {{#if this.saveError}}
+              <p class="error">{{this.saveError}}</p>
+            {{/if}}
           </div>
         {{else}}
           <div class="cover cover-placeholder cover-empty-state"></div>
