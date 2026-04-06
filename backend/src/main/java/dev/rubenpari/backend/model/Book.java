@@ -33,23 +33,27 @@ public class Book {
     @Column(nullable = false, unique = true)
     private String externalId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1024)
     private String title;
 
     @ElementCollection
     @CollectionTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"))
-    @Column(name = "author")
+    @Column(name = "author", length = 512)
     private Set<String> authors = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "book_categories", joinColumns = @JoinColumn(name = "book_id"))
-    @Column(name = "category")
+    @Column(name = "category", length = 512)
     private Set<String> categories = new HashSet<>();
 
     private String language;
     private Double rating;
     private Integer publicationYear;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(length = 2048)
     private String coverUrl;
 
     @Column(nullable = false)
