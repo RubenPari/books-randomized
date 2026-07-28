@@ -1,0 +1,21 @@
+<article class="auth-page">
+  <header>
+    <p class="kicker">{{ 'auth.kicker' | transloco }}</p>
+    <h1>{{ ('auth.' + mode + '.title') | transloco }}</h1>
+  </header>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (mode !== 'reset') {
+      <label>{{ 'auth.email' | transloco }}<input type="email" formControlName="email" autocomplete="email" /></label>
+    }
+    @if (mode === 'login' || mode === 'register' || mode === 'reset') {
+      <label>{{ 'auth.password' | transloco }}<input type="password" formControlName="password" [autocomplete]="mode === 'login' ? 'current-password' : 'new-password'" /></label>
+    }
+    @if (error()) { <p class="form-error" role="alert">{{ 'state.problem' | transloco }}</p> }
+    @if (success()) { <p class="form-success" role="status">{{ 'auth.success.generic' | transloco }}</p> }
+    <button class="button primary" type="submit" [disabled]="pending()">{{ ('auth.' + mode + '.submit') | transloco }}</button>
+    @if (mode === 'login') {
+      <a routerLink="/register">{{ 'auth.login.register' | transloco }}</a>
+      <a routerLink="/forgot-password">{{ 'auth.forgot.title' | transloco }}</a>
+    }
+  </form>
+</article>
