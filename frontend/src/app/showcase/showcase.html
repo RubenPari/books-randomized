@@ -1,0 +1,123 @@
+<article class="showcase">
+  <header class="hero">
+    <p class="kicker">Primitive reference / Issue 02</p>
+    <div class="hero-grid">
+      <h1>The component index</h1>
+      <p class="deck">A working editorial foundation for book discovery, stress-tested before product screens are composed.</p>
+    </div>
+  </header>
+
+  <section class="feature" aria-labelledby="feature-title">
+    <div>
+      <p class="kicker">Featured primitive / Book tile</p>
+      <h2 id="feature-title">A different shelf every time</h2>
+    </div>
+    <article class="book-tile" data-primitive="book-tile">
+      <div class="book-cover" aria-hidden="true">
+        <span>Collected<br />Poems</span><span>W. S.</span>
+      </div>
+      <div class="book-copy">
+        <p class="kicker cobalt">Poetry / 1996</p>
+        <h3>View with a Grain of Sand</h3>
+        <p class="author">Wisława Szymborska</p>
+        <p>A precise, curious collection that makes the everyday strange again. The editorial split gives title, author, and metadata room to breathe.</p>
+        <a href="#states">View specimen <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <section class="specimens" aria-labelledby="specimens-title">
+    <header class="section-heading">
+      <p class="kicker">Component library</p>
+      <h2 id="specimens-title">Controls under pressure</h2>
+    </header>
+    <div class="specimen-grid">
+      <section class="specimen" aria-labelledby="buttons-title">
+        <h3 id="buttons-title">01 / Buttons</h3>
+        <button class="button primary" data-primitive="button">Randomize</button>
+        <button class="button secondary" data-primitive="button">View details</button>
+        <button class="button tertiary" data-primitive="button">Read the notes →</button>
+        <button class="button secondary long-label">Thisisanextraordinarilylongunbrokenbuttonlabelthatmustremainusable</button>
+        <button class="button primary" disabled>Unavailable</button>
+        <button class="button primary" aria-busy="true">Drawing shelf…</button>
+      </section>
+
+      <section class="specimen" aria-labelledby="fields-title">
+        <h3 id="fields-title">02 / Fields</h3>
+        <label for="search">Search the catalogue</label>
+        <input id="search" data-primitive="field" placeholder="Title, author, or ISBN" />
+        <p class="hint">Try “translated fiction”.</p>
+        <label for="invalid-search">Error specimen</label>
+        <input id="invalid-search" aria-invalid="true" aria-describedby="field-error" value="978-" />
+        <p class="error-copy" id="field-error">Enter a complete ISBN.</p>
+        <label for="disabled-search">Disabled specimen</label>
+        <input id="disabled-search" disabled value="Catalogue syncing" />
+      </section>
+
+      <section class="specimen" aria-labelledby="chips-title">
+        <h3 id="chips-title">03 / Chips</h3>
+        <div class="chip-cluster">
+          <button class="chip selected" data-primitive="chip" aria-pressed="true">Fiction <span aria-hidden="true">×</span></button>
+          <button class="chip" aria-pressed="false">Poetry <span aria-hidden="true">+</span></button>
+          <button class="chip long-label" aria-pressed="false">Thisisanextraordinarilylongunbrokengenrelabel</button>
+          <button class="chip" disabled>Unavailable</button>
+        </div>
+      </section>
+
+      <section class="specimen" aria-labelledby="overlays-title">
+        <h3 id="overlays-title">04 / Overlays</h3>
+        <p>Both specimens trap focus, close with Escape, and restore focus.</p>
+        <button class="button secondary" data-open-drawer (click)="openDrawer()">Open drawer</button>
+        <button class="button secondary" (click)="openDialog()">Open dialog</button>
+      </section>
+    </div>
+  </section>
+
+  <section class="states" id="states" aria-labelledby="states-title">
+    <header class="section-heading">
+      <p class="kicker">System states</p>
+      <h2 id="states-title">Nothing is still information</h2>
+    </header>
+    <div class="state-grid">
+      <article class="state" data-state="loading" aria-live="polite" aria-busy="true">
+        <p class="kicker">Loading</p><div class="skeleton" aria-hidden="true"></div>
+        <h3>Finding the next shelf</h3><p>Consulting the catalogue.</p>
+      </article>
+      <article class="state" data-state="empty">
+        <p class="kicker">Empty</p><div class="empty-mark" aria-hidden="true">0</div>
+        <h3>No books found</h3><p>Clear one filter or draw again.</p>
+        <button class="button tertiary">Clear filters →</button>
+      </article>
+      <article class="state error-state" data-state="error" role="alert">
+        <p class="kicker">Error</p><div class="error-mark" aria-hidden="true">!</div>
+        <h3>The shelf could not load</h3><p>Check your connection, then try again.</p>
+        <button class="button tertiary">Try again →</button>
+      </article>
+    </div>
+  </section>
+</article>
+
+@if (drawerOpen()) {
+  <div class="overlay" (click)="closeDrawer()" aria-hidden="true"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="closeDrawer()">
+    <button class="close" type="button" (click)="closeDrawer()" aria-label="Close drawer">×</button>
+    <p class="kicker">Drawer / Component index</p><h2 id="drawer-title">Browse the issue</h2>
+    <nav aria-label="Showcase sections">
+      <a href="#feature-title" (click)="closeDrawer()">Featured book</a>
+      <a href="#specimens-title" (click)="closeDrawer()">Controls</a>
+      <a href="#states-title" (click)="closeDrawer()">System states</a>
+    </nav>
+  </aside>
+}
+
+@if (dialogOpen()) {
+  <div class="overlay" aria-hidden="true"></div>
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="closeDialog()">
+    <p class="kicker">Dialog / Confirmation</p><h2 id="dialog-title">Draw another shelf?</h2>
+    <p>Your current selection will be replaced with five different books.</p>
+    <div class="dialog-actions">
+      <button class="button secondary" type="button" (click)="closeDialog()">Keep these</button>
+      <button class="button primary" type="button" (click)="closeDialog()">Draw another</button>
+    </div>
+  </section>
+}

@@ -1,0 +1,25 @@
+<article class="profile-page">
+  <header>
+    <p class="kicker">{{ 'profile.kicker' | transloco }}</p>
+    <h1>{{ 'profile.title' | transloco }}</h1>
+  </header>
+  <section class="profile-grid">
+    <div class="account-details">
+      <p class="label">{{ 'profile.email' | transloco }}</p>
+      <p>{{ session.user()?.email }}</p>
+      <label>{{ 'profile.locale' | transloco }}
+        <select #profileLocale [value]="locale.locale()" (change)="setLocale(profileLocale.value)">
+          <option value="en">English</option><option value="it">Italiano</option>
+        </select>
+      </label>
+    </div>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+      <h2>{{ 'auth.change.title' | transloco }}</h2>
+      <label>{{ 'auth.currentPassword' | transloco }}<input type="password" formControlName="currentPassword" autocomplete="current-password" /></label>
+      <label>{{ 'auth.newPassword' | transloco }}<input type="password" formControlName="newPassword" autocomplete="new-password" /></label>
+      @if (error()) { <p class="form-error" role="alert">{{ 'state.problem' | transloco }}</p> }
+      @if (success()) { <p role="status">{{ 'auth.success.generic' | transloco }}</p> }
+      <button class="button primary" type="submit" [disabled]="pending()">{{ 'auth.change.submit' | transloco }}</button>
+    </form>
+  </section>
+</article>
