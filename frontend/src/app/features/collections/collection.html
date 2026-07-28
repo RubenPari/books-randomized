@@ -1,0 +1,53 @@
+<article class="collection-page">
+  <header>
+    <p class="kicker">{{ (kind === 'history' ? 'collection.history.kicker' : 'collection.reading.kicker') | transloco }}</p>
+    <h1>{{ titleKey | transloco }}</h1>
+  </header>
+  <section class="collection-tools" aria-label="Collection controls">
+    <label>
+      <span>{{ 'collection.search' | transloco }}</span>
+      <input type="search" [ngModel]="store.query()" (ngModelChange)="setQuery($event)" />
+    </label>
+    <label>
+      <span>{{ 'collection.sort' | transloco }}</span>
+      <select [ngModel]="store.sort()" (ngModelChange)="setSort($event)">
+        <option value="newest">{{ 'collection.sortNewest' | transloco }}</option>
+        <option value="title">{{ 'collection.sortTitle' | transloco }}</option>
+      </select>
+    </label>
+  </section>
+
+  @if (store.status() === 'loading') {
+    <section class="system-state" data-state="loading" aria-busy="true">{{ 'state.loading' | transloco }}</section>
+  } @else if (store.status() === 'error' || store.status() === 'offline') {
+    <section class="system-state error-state" [attr.data-state]="store.status()" role="alert">
+      <h2>{{ (store.status() === 'offline' ? 'state.offline' : 'state.error') | transloco }}</h2>
+      <button class="button tertiary" (click)="store.load(kind)">{{ 'state.retry' | transloco }} →</button>
+    </section>
+  } @else if (store.visibleItems().length === 0) {
+    <section class="system-state" data-state="empty">
+      <p class="empty-mark" aria-hidden="true">0</p>
+      <h2>{{ 'collection.empty' | transloco }}</h2>
+      <a class="button tertiary" routerLink="/discover">{{ 'collection.emptyAction' | transloco }} →</a>
+    </section>
+  } @else {
+    <ol class="book-list">
+      @for (item of store.visibleItems(); track item.id) {
+        <li>
+          <span class="index">{{ ($index + 1).toString().padStart(2, '0') }}</span>
+          <div>
+            <h2>{{ item.title || item.catalogBookId }}</h2>
+            @if (item.authors.length) { <p>{{ item.authors.join(', ') }}</p> }
+            @if ('status' in item) { <p>{{ item.status }}</p> }
+          </div>
+          <p class="metadata">{{ ('addedAt' in item ? item.addedAt : item.discoveredAt) | date: 'mediumDate' }}</p>
+          @if (kind === 'reading') {
+            <button class="button tertiary" type="button" (click)="store.remove(item.catalogBookId)">{{ 'collection.remove' | transloco }}</button>
+          } @else {
+            <button class="button tertiary" type="button" (click)="store.removeDiscovered(item.catalogBookId)">{{ 'collection.remove' | transloco }}</button>
+          }
+        </li>
+      }
+    </ol>
+  }
+</article>
