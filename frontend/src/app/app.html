@@ -1,0 +1,48 @@
+<header class="masthead">
+  <a class="brand" routerLink="/discover">{{ 'app.brand' | transloco }}</a>
+  <nav aria-label="Primary navigation">
+    @if (session.user()) {
+      <a routerLink="/discover" routerLinkActive="is-active">{{ 'nav.discover' | transloco }}</a>
+      <a routerLink="/reading-list" routerLinkActive="is-active">{{ 'nav.readingList' | transloco }}</a>
+      <a routerLink="/discovered" routerLinkActive="is-active">{{ 'nav.history' | transloco }}</a>
+      <a routerLink="/profile" routerLinkActive="is-active">{{ 'nav.profile' | transloco }}</a>
+      <button class="desktop-logout" type="button" (click)="logout()">{{ 'nav.logout' | transloco }}</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="is-active">{{ 'nav.login' | transloco }}</a>
+    }
+  </nav>
+  <div class="masthead-actions">
+    <label class="locale-picker"><span class="visually-hidden">{{ 'locale.label' | transloco }}</span>
+      <select #localeSelect [value]="locale.locale()" (change)="setLocale(localeSelect.value)">
+        <option value="en">EN</option><option value="it">IT</option>
+      </select>
+    </label>
+    <button class="menu-trigger" type="button" (click)="openNavigation()">{{ 'nav.menu' | transloco }}</button>
+  </div>
+</header>
+<main><router-outlet /></main>
+
+@if (navigationOpen()) {
+  <div class="nav-overlay" aria-hidden="true" (click)="closeNavigation()"></div>
+  <aside
+    class="nav-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="navigation-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    (keydown.escape)="closeNavigation()"
+  >
+    <button type="button" class="nav-close" (click)="closeNavigation()">{{ 'nav.close' | transloco }}</button>
+    <p id="navigation-title">{{ 'app.brand' | transloco }}</p>
+    @if (session.user()) {
+      <a routerLink="/discover" (click)="closeNavigation()">{{ 'nav.discover' | transloco }}</a>
+      <a routerLink="/reading-list" (click)="closeNavigation()">{{ 'nav.readingList' | transloco }}</a>
+      <a routerLink="/discovered" (click)="closeNavigation()">{{ 'nav.history' | transloco }}</a>
+      <a routerLink="/profile" (click)="closeNavigation()">{{ 'nav.profile' | transloco }}</a>
+      <button class="nav-action" type="button" (click)="logout(); closeNavigation()">{{ 'nav.logout' | transloco }}</button>
+    } @else {
+      <a routerLink="/login" (click)="closeNavigation()">{{ 'nav.login' | transloco }}</a>
+    }
+  </aside>
+}
