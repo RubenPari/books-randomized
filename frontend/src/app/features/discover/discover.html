@@ -1,0 +1,98 @@
+<article class="discover-page">
+  <header class="discovery-hero">
+    <div class="issue">
+      <p class="kicker">{{ 'discover.kicker' | transloco }}</p>
+      <span aria-hidden="true">No. 03</span>
+    </div>
+    <h1>{{ 'discover.title' | transloco }}</h1>
+    <div class="hero-actions">
+      <p>{{ 'discover.deck' | transloco }}</p>
+      <button class="button secondary" type="button" (click)="filtersOpen.set(true)">
+        {{ 'discover.filters' | transloco }}
+      </button>
+      <button class="button primary" type="button" [disabled]="store.status() === 'loading'" (click)="store.discover()">
+        {{ (store.hasResult() ? 'discover.drawAgain' : 'discover.draw') | transloco }}
+      </button>
+    </div>
+  </header>
+
+  @if (store.status() === 'loading') {
+    <section class="system-state" data-state="loading" aria-live="polite" aria-busy="true">
+      <div class="skeleton" aria-hidden="true"></div><p>{{ 'state.loading' | transloco }}</p>
+    </section>
+  } @else if (store.status() === 'offline') {
+    <section class="system-state" data-state="offline" role="alert">
+      <p class="state-mark" aria-hidden="true">×</p><h2>{{ 'state.offline' | transloco }}</h2>
+      <button class="button tertiary" type="button" (click)="store.discover()">{{ 'state.retry' | transloco }} →</button>
+    </section>
+  } @else if (store.status() === 'error') {
+    <section class="system-state error-state" data-state="error" role="alert">
+      <p class="state-mark" aria-hidden="true">!</p><h2>{{ 'state.error' | transloco }}</h2>
+      <button class="button tertiary" type="button" (click)="store.discover()">{{ 'state.retry' | transloco }} →</button>
+    </section>
+  } @else if (store.book(); as book) {
+    <article class="book-result">
+      <div class="cover" [class.has-image]="book.coverUrl">
+        @if (book.coverUrl) {
+          <img [src]="book.coverUrl" [alt]="book.title" width="360" height="520" />
+        } @else {
+          <span>{{ book.title }}</span>
+        }
+      </div>
+      <div class="book-copy">
+        <p class="kicker">{{ book.subjects.slice(0, 2).join(' / ') }}</p>
+        <h2>{{ book.title }}</h2>
+        <p class="author">{{ book.authors.join(', ') }}</p>
+        <dl>
+          @if (book.publicationYear) { <div><dt>{{ 'book.year' | transloco }}</dt><dd>{{ book.publicationYear }}</dd></div> }
+          @if (book.rating) { <div><dt>{{ 'book.rating' | transloco }}</dt><dd>{{ book.rating }}</dd></div> }
+          @if (book.pageCount) { <div><dt>{{ 'book.format' | transloco }}</dt><dd>{{ book.pageCount }} {{ 'book.pages' | transloco }}</dd></div> }
+        </dl>
+        @if (book.explanationKeys.length) {
+          <ul class="explanations">
+            @for (key of book.explanationKeys; track key) {
+              <li>{{ key | transloco }}</li>
+            }
+          </ul>
+        }
+        <div class="result-actions">
+          <button class="button primary" type="button" [disabled]="store.actionPending() || store.saved()" (click)="store.save()">
+            {{ (store.saved() ? 'book.saved' : 'book.save') | transloco }}
+          </button>
+          <button class="button secondary" type="button" [attr.aria-pressed]="store.feedback() === 'LIKE'" [disabled]="store.actionPending()" (click)="store.sendFeedback('LIKE')">
+            {{ 'book.like' | transloco }}
+          </button>
+          <button class="button secondary" type="button" [attr.aria-pressed]="store.feedback() === 'DISLIKE'" [disabled]="store.actionPending()" (click)="store.sendFeedback('DISLIKE')">
+            {{ 'book.dislike' | transloco }}
+          </button>
+        </div>
+      </div>
+    </article>
+  } @else {
+    <div class="opening-mark" aria-hidden="true">?</div>
+  }
+  <p class="attribution">{{ 'attribution' | transloco }} <a href="https://openlibrary.org" rel="external noopener">openlibrary.org</a></p>
+</article>
+
+@if (filtersOpen()) {
+  <div class="overlay" aria-hidden="true" (click)="filtersOpen.set(false)"></div>
+  <aside class="filter-drawer" role="dialog" aria-modal="true" aria-labelledby="filter-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (keydown.escape)="filtersOpen.set(false)">
+    <button class="drawer-close" type="button" (click)="filtersOpen.set(false)">{{ 'discover.closeFilters' | transloco }}</button>
+    <h2 id="filter-title">{{ 'discover.filters' | transloco }}</h2>
+    <form (ngSubmit)="applyFilters()">
+      <label>{{ 'discover.language' | transloco }}<select name="language" [(ngModel)]="language"><option value="">{{ 'discover.anyLanguage' | transloco }}</option><option value="eng">{{ 'discover.english' | transloco }}</option><option value="ita">{{ 'discover.italian' | transloco }}</option></select></label>
+      <label>{{ 'discover.subjects' | transloco }}<input name="subjects" [(ngModel)]="subjects" /></label>
+      <div class="field-pair">
+        <label>{{ 'discover.yearFrom' | transloco }}<input type="number" name="yearFrom" [(ngModel)]="yearFrom" /></label>
+        <label>{{ 'discover.yearTo' | transloco }}<input type="number" name="yearTo" [(ngModel)]="yearTo" /></label>
+      </div>
+      <label>{{ 'discover.minRating' | transloco }}<input type="number" min="0" max="5" step=".1" name="minimumRating" [(ngModel)]="minimumRating" /></label>
+      <label>{{ 'discover.minRatingsCount' | transloco }}<input type="number" min="0" name="minimumRatingsCount" [(ngModel)]="minimumRatingsCount" /></label>
+      <div class="field-pair">
+        <label>{{ 'discover.pagesFrom' | transloco }}<input type="number" min="1" name="pagesFrom" [(ngModel)]="pagesFrom" /></label>
+        <label>{{ 'discover.pagesTo' | transloco }}<input type="number" min="1" name="pagesTo" [(ngModel)]="pagesTo" /></label>
+      </div>
+      <button class="button primary" type="submit">{{ 'discover.draw' | transloco }}</button>
+    </form>
+  </aside>
+}
