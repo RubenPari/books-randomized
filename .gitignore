@@ -1,0 +1,8 @@
+.env
+node_modules/
+target/
+dist/
+.omo/
+backend/evidence/
+frontend/evidence/
+frontend/frontend/
