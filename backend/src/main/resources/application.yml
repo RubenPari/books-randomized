@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: books-randomized-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/books}
+    username: ${DATABASE_USERNAME:books}
+    password: ${DATABASE_PASSWORD:books}
+    hikari:
+      connection-timeout: 3000
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+  cache:
+    type: caffeine
+    caffeine:
+      # Search results expire after 15 minutes and stale values are never served after expiry.
+      spec: maximumSize=500,expireAfterWrite=15m
+  http:
+    clients:
+      connect-timeout: 2s
+      read-timeout: 3s
+      redirects: dont-follow
+  jackson:
+    time-zone: UTC
+    deserialization:
+      fail-on-unknown-properties: true
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+server:
+  error:
+    include-message: never
+catalog:
+  open-library:
+    base-url: ${OPEN_LIBRARY_BASE_URL:https://openlibrary.org}
+    user-agent: ${OPEN_LIBRARY_USER_AGENT:BooksRandomized/1.0}
+auth:
+  jwt:
+    private-key: ${AUTH_JWT_PRIVATE_KEY:}
+    public-key: ${AUTH_JWT_PUBLIC_KEY:}
+    require-keys: ${AUTH_JWT_REQUIRE_KEYS:false}
+  cookie:
+    secure: ${AUTH_COOKIE_SECURE:true}
+  password-reset:
+    from: ${PASSWORD_RESET_FROM:no-reply@books-randomized.invalid}

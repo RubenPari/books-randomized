@@ -1,0 +1,30 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+  mail:
+    host: localhost
+    port: 2525
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+management:
+  health:
+    mail:
+      enabled: false
+catalog:
+  open-library:
+    user-agent: BooksRandomized/1.0
+auth:
+  jwt:
+    private-key: classpath:jwt/private.pem
+    public-key: classpath:jwt/public.pem
+  cookie:
+    secure: false
+  password-reset:
+    from: no-reply@books-randomized.invalid
+discovery:
+  random-seed: 731994
