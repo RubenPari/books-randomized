@@ -1,0 +1,6 @@
+ALTER TABLE discovered_books
+    ADD COLUMN title VARCHAR(500) NOT NULL DEFAULT '',
+    ADD COLUMN authors TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE reading_list_items
+    ADD COLUMN title VARCHAR(500) NOT NULL DEFAULT '',
+    ADD COLUMN authors TEXT NOT NULL DEFAULT '[]';
